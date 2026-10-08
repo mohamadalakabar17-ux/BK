@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=no" />
+<title>MISSION: BREAK IT DOWN! — Petualangan Berpikir Komputasional</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+</script>
+<style>
+:root {
+  --bg: #050816; --bg-2: #0a1130;
+  --surface: rgba(15, 23, 60, 0.55); --surface-2: rgba(20, 30, 70, 0.85);
+  --border: rgba(0, 229, 255, 0.18); --border-strong: rgba(0, 229, 255, 0.5);
+  --text: #e7f0ff; --muted: #8aa0c5;
+  --cyan: #00e5ff; --pink: #ff2d75; --lime: #39ff14; --gold: #ffd700;
+  --orange: #ff6b35; --purple: #b14dff;
+}
+html.light {
+  --bg: #eef3ff; --bg-2: #dde6ff;
+  --surface: rgba(255, 255, 255, 0.75); --surface-2: rgba(255, 255, 255, 0.95);
+  --border: rgba(0, 120, 200, 0.25); --border-strong: rgba(0, 120, 200, 0.5);
+  --text: #0a1230; --muted: #4a5b80;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh; overflow-x: hidden;
+  transition: background 0.4s, color 0.4s;
+}
+.font-display { font-family: 'Orbitron', sans-serif; letter-spacing: 0.04em; }
+#particles, #confetti { position: fixed; inset: 0; pointer-events: none; }
+#particles { z-index: -2; }
+#three-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0.5; }
+html.light #three-bg { opacity: 0.25; }
+
+/* ===== NAVBAR ===== */
+.navbar {
+  position: sticky; top: 0; z-index: 60;
+  background: linear-gradient(180deg, rgba(5,8,22,0.97), rgba(5,8,22,0.8));
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-strong);
+  box-shadow: 0 4px 30px rgba(0,229,255,0.1);
+}
+html.light .navbar { background: linear-gradient(180deg, rgba(255,255,255,0.97), rgba(240,245,255,0.85)); }
+.nav-wrap { max-width: 1400px; margin: 0 auto; padding: 8px 12px; display: flex; align-items: center; gap: 10px; }
+.nav-logo { display: flex; align-items: center; gap: 8px; cursor: pointer; flex-shrink: 0; }
+.nav-logo-icon {
+  width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  box-shadow: 0 0 18px rgba(0,229,255,0.5); transition: transform 0.3s; flex-shrink: 0;
+}
+.nav-logo:hover .nav-logo-icon { transform: rotate(10deg) scale(1.05); }
+.nav-logo-text { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 13px; line-height: 1.1; }
+.nav-logo-sub { font-size: 8px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--muted); }
+.nav-menu { display: flex; align-items: center; gap: 3px; flex: 1; justify-content: center; }
+.nav-link {
+  position: relative; padding: 8px 12px; border-radius: 8px;
+  color: var(--muted); font-weight: 600; font-size: 13px;
+  transition: all 0.25s; cursor: pointer; white-space: nowrap;
+  display: flex; align-items: center; gap: 5px;
+}
+.nav-link i { font-size: 14px; }
+.nav-link:hover { color: var(--text); background: rgba(0,229,255,0.08); }
+.nav-link.active { color: var(--cyan); background: rgba(0,229,255,0.12); box-shadow: 0 0 15px rgba(0,229,255,0.15); }
+.nav-link.active::after {
+  content: ''; position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%);
+  width: 18px; height: 2px; background: var(--cyan); border-radius: 2px; box-shadow: 0 0 8px var(--cyan);
+}
+.nav-actions { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+.nav-btn {
+  width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  background: var(--surface-2); border: 1px solid var(--border-strong); color: var(--text);
+  cursor: pointer; transition: all 0.25s; font-size: 14px; flex-shrink: 0;
+}
+.nav-btn:hover { border-color: var(--cyan); color: var(--cyan); transform: translateY(-2px); }
+.nav-btn.active { border-color: var(--lime); color: var(--lime); box-shadow: 0 0 12px rgba(57,255,20,0.3); }
+.nav-player { display: flex; align-items: center; gap: 6px; padding: 5px 10px 5px 5px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border-strong); cursor: pointer; transition: all 0.25s; flex-shrink: 0; }
+.nav-player:hover { border-color: var(--cyan); transform: translateY(-2px); }
+.nav-player-avatar { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--cyan), var(--purple)); color: white; font-size: 12px; flex-shrink: 0; }
+.nav-player-name { font-size: 12px; font-weight: 700; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nav-player-xp { font-size: 10px; padding: 2px 6px; border-radius: 5px; background: var(--cyan); color: #001520; font-weight: 800; font-family: 'Orbitron', sans-serif; }
+
+/* ===== BOTTOM NAV (MOBILE) ===== */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 60;
+  background: rgba(5,8,22,0.97); backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border-strong);
+  display: none; padding: 6px 4px;
+  box-shadow: 0 -4px 30px rgba(0,229,255,0.1);
+}
+html.light .bottom-nav { background: rgba(255,255,255,0.97); }
+.bottom-nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 6px 2px; color: var(--muted); font-size: 9px; font-weight: 700; cursor: pointer;
+  transition: color 0.2s; border-radius: 8px;
+}
+.bottom-nav-item i { font-size: 18px; }
+.bottom-nav-item.active { color: var(--cyan); }
+.bottom-nav-item:active { background: rgba(0,229,255,0.1); }
+
+/* Responsive breakpoints */
+@media (max-width: 1100px) {
+  .nav-menu { gap: 1px; }
+  .nav-link { padding: 7px 9px; font-size: 12px; }
+}
+@media (max-width: 768px) {
+  .nav-wrap { gap: 6px; padding: 6px 8px; }
+  .nav-logo-text { font-size: 11px; }
+  .nav-logo-sub { display: none; }
+  .nav-menu { display: none; }
+  .nav-player-name { display: none; }
+  .bottom-nav { display: flex; }
+  body { padding-bottom: 64px; }
+}
+@media (max-width: 480px) {
+  .nav-logo-icon { width: 32px; height: 32px; }
+  .nav-logo-text { font-size: 10px; }
+  .nav-btn { width: 32px; height: 32px; font-size: 12px; }
+  .nav-player { padding: 3px 8px 3px 3px; }
+  .nav-player-avatar { width: 24px; height: 24px; font-size: 10px; }
+  .nav-player-xp { font-size: 9px; padding: 1px 5px; }
+}
+
+/* View transitions */
+.view { animation: viewIn 0.5s cubic-bezier(.2,.8,.2,1); }
+@keyframes viewIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+.hidden { display: none !important; }
+
+/* Glass card */
+.glass {
+  background: var(--surface); backdrop-filter: blur(16px);
+  border: 1px solid var(--border); border-radius: 20px;
+  box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+html.light .glass { box-shadow: 0 10px 40px -10px rgba(0,50,150,0.15), inset 0 1px 0 rgba(255,255,255,0.5); }
+
+/* Buttons */
+.btn-neon {
+  position: relative; padding: 12px 24px; border-radius: 12px;
+  font-weight: 700; font-family: 'Orbitron', sans-serif; letter-spacing: 0.05em;
+  background: linear-gradient(135deg, var(--cyan), #0095ff);
+  color: #001a2b; border: none; cursor: pointer; overflow: hidden;
+  box-shadow: 0 0 25px rgba(0,229,255,0.4), 0 4px 16px rgba(0,0,0,0.3);
+  transition: all 0.3s; font-size: 14px;
+}
+.btn-neon:hover { transform: translateY(-3px); box-shadow: 0 0 45px rgba(0,229,255,0.6), 0 8px 24px rgba(0,0,0,0.4); }
+.btn-neon:active { transform: translateY(-1px); }
+.btn-neon.pink { background: linear-gradient(135deg, var(--pink), #c91860); color: white; box-shadow: 0 0 25px rgba(255,45,117,0.4), 0 4px 16px rgba(0,0,0,0.3); }
+.btn-neon.lime { background: linear-gradient(135deg, var(--lime), #00c20a); color: #001a00; box-shadow: 0 0 25px rgba(57,255,20,0.4), 0 4px 16px rgba(0,0,0,0.3); }
+.btn-neon.gold { background: linear-gradient(135deg, var(--gold), #ff9500); color: #2a1500; box-shadow: 0 0 25px rgba(255,215,0,0.4), 0 4px 16px rgba(0,0,0,0.3); }
+.btn-ghost {
+  padding: 10px 18px; border-radius: 12px; font-weight: 700; cursor: pointer;
+  background: var(--surface); color: var(--text); border: 1px solid var(--border-strong);
+  transition: all 0.25s; font-size: 13px;
+}
+.btn-ghost:hover { background: rgba(0,229,255,0.1); border-color: var(--cyan); transform: translateY(-2px); }
+
+/* Hero title */
+.hero-title {
+  font-family: 'Orbitron', sans-serif; font-weight: 900;
+  background: linear-gradient(180deg, #ffffff 0%, var(--cyan) 60%, #0095ff 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 4px 30px rgba(0,229,255,0.35));
+  letter-spacing: 0.02em; line-height: 1;
+}
+
+/* Robot */
+.robot { width: 200px; height: 260px; position: relative; animation: floatBob 4s ease-in-out infinite; }
+@keyframes floatBob { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-18px) rotate(2deg); } }
+.robot-head { width: 130px; height: 100px; margin: 0 auto; background: linear-gradient(180deg, #1a2855, #0f1840); border: 2px solid var(--cyan); border-radius: 26px; position: relative; box-shadow: 0 0 40px rgba(0,229,255,0.5); }
+.robot-eye { position: absolute; top: 32px; width: 26px; height: 26px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 18px var(--cyan); animation: blink 4s infinite; }
+@keyframes blink { 0%,92%,100%{transform:scaleY(1)} 95%{transform:scaleY(0.1)} }
+.robot-eye.left { left: 25px; } .robot-eye.right { right: 25px; }
+.robot-mouth { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); width: 54px; height: 5px; background: var(--pink); border-radius: 3px; box-shadow: 0 0 12px var(--pink); }
+.robot-antenna { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 4px; height: 22px; background: var(--cyan); }
+.robot-antenna::after { content: ''; position: absolute; top: -7px; left: -6px; width: 16px; height: 16px; border-radius: 50%; background: var(--pink); box-shadow: 0 0 18px var(--pink); animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.3);opacity:0.7} }
+.robot-body { width: 150px; height: 120px; margin: 8px auto 0; background: linear-gradient(180deg, #1a2855, #0f1840); border: 2px solid var(--cyan); border-radius: 22px 22px 28px 28px; position: relative; box-shadow: 0 0 35px rgba(0,229,255,0.4); }
+.robot-chest { position: absolute; top: 18px; left: 50%; transform: translateX(-50%); width: 46px; height: 46px; border-radius: 12px; background: linear-gradient(135deg, var(--pink), var(--purple)); box-shadow: 0 0 28px var(--pink); animation: pulse 2s infinite; }
+.robot-arm { position: absolute; top: 8px; width: 16px; height: 72px; background: linear-gradient(180deg, #1a2855, #0f1840); border: 2px solid var(--cyan); border-radius: 10px; }
+.robot-arm.left { left: -18px; transform: rotate(-10deg); } .robot-arm.right { right: -18px; transform: rotate(10deg); animation: wave 2s infinite; }
+@keyframes wave { 0%,100%{transform:rotate(10deg)} 50%{transform:rotate(-30deg)} }
+
+/* Floating cards */
+.floating-card { position: absolute; padding: 8px 14px; border-radius: 12px; background: var(--surface); backdrop-filter: blur(12px); border: 1px solid var(--border-strong); font-size: 12px; font-weight: 600; box-shadow: 0 0 25px rgba(0,229,255,0.2); animation: floatCard 6s ease-in-out infinite; z-index: 5; }
+@keyframes floatCard { 0%,100%{transform:translateY(0) rotate(-3deg)} 50%{transform:translateY(-12px) rotate(3deg)} }
+
+/* World card */
+.world-card { position: relative; padding: 20px; border-radius: 20px; background: var(--surface); backdrop-filter: blur(14px); border: 1px solid var(--border); overflow: hidden; cursor: pointer; transition: all 0.4s cubic-bezier(.2,.8,.2,1); }
+.world-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, var(--accent-color, var(--cyan)) 0%, transparent 50%); opacity: 0.15; transition: opacity 0.4s; }
+.world-card:hover { transform: translateY(-6px); border-color: var(--accent-color, var(--cyan)); box-shadow: 0 16px 40px -8px var(--accent-color, var(--cyan)); }
+.world-card:hover::before { opacity: 0.3; }
+.world-card.locked { opacity: 0.45; cursor: not-allowed; filter: grayscale(0.6); }
+.world-card.locked:hover { transform: none; box-shadow: none; }
+.world-icon { width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; background: var(--surface-2); margin-bottom: 12px; box-shadow: 0 0 25px var(--accent-color, var(--cyan)); border: 1px solid var(--accent-color, var(--cyan)); }
+
+/* Progress bar */
+.progress-bar { height: 8px; background: rgba(0,0,0,0.4); border-radius: 4px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--cyan), var(--lime)); border-radius: 4px; transition: width 0.6s; box-shadow: 0 0 12px var(--cyan); position: relative; }
+.progress-fill::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); animation: shimmer 2s infinite; }
+@keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+
+/* Energy bar */
+.energy-bar { display: inline-flex; align-items: center; gap: 4px; }
+.energy-cell { width: 8px; height: 14px; border-radius: 2px; background: rgba(255,255,255,0.15); }
+.energy-cell.full { background: var(--lime); box-shadow: 0 0 6px var(--lime); }
+
+/* Drag and drop */
+.drag-item { padding: 12px 14px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--border-strong); cursor: grab; user-select: none; font-weight: 600; transition: all 0.2s; touch-action: none; display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.drag-item:hover { border-color: var(--cyan); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,229,255,0.2); }
+.drag-item:active, .drag-item.dragging { cursor: grabbing; opacity: 0.5; transform: scale(0.95); }
+.drag-item.placed { opacity: 0.4; pointer-events: none; }
+.drop-zone { min-height: 70px; border: 2px dashed var(--border-strong); border-radius: 14px; padding: 12px; transition: all 0.3s; background: rgba(0,0,0,0.2); }
+.drop-zone.over { border-color: var(--cyan); background: rgba(0,229,255,0.1); box-shadow: 0 0 25px rgba(0,229,255,0.3) inset; }
+
+/* Pattern */
+.pattern-option { padding: 16px; border-radius: 14px; background: var(--surface-2); border: 2px solid var(--border); cursor: pointer; transition: all 0.25s; font-size: 28px; text-align: center; font-weight: 700; }
+.pattern-option:hover { border-color: var(--cyan); transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,229,255,0.25); }
+.pattern-option.correct { border-color: var(--lime); background: rgba(57,255,20,0.15); animation: bounce 0.5s; }
+.pattern-option.wrong { border-color: var(--pink); background: rgba(255,45,117,0.15); animation: shake 0.4s; }
+@keyframes bounce { 0%,100%{transform:scale(1)} 50%{transform:scale(1.15)} }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+.pattern-seq { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
+.pattern-item { width: 60px; height: 60px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 30px; background: var(--surface-2); border: 2px solid var(--border-strong); box-shadow: 0 6px 16px rgba(0,0,0,0.3); animation: popIn 0.4s; }
+@keyframes popIn { from{transform:scale(0)} to{transform:scale(1)} }
+.pattern-item.question { border-color: var(--gold); box-shadow: 0 0 25px rgba(255,215,0,0.5); animation: pulseGold 1.5s infinite; }
+@keyframes pulseGold { 0%,100%{box-shadow:0 0 18px rgba(255,215,0,0.4)} 50%{box-shadow:0 0 35px rgba(255,215,0,0.8)} }
+
+/* Step card */
+.step-card { padding: 12px 14px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--border-strong); cursor: grab; user-select: none; display: flex; align-items: center; gap: 10px; transition: all 0.2s; touch-action: none; font-size: 13px; }
+.step-card:hover { border-color: var(--cyan); transform: translateX(4px); }
+.step-card.dragging { opacity: 0.4; }
+.step-number { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; background: linear-gradient(135deg, var(--cyan), var(--purple)); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; font-family: 'Orbitron', sans-serif; font-size: 13px; }
+.step-list-slot { min-height: 50px; border: 2px dashed var(--border-strong); border-radius: 12px; padding: 8px 10px; transition: all 0.3s; display: flex; align-items: center; gap: 10px; }
+.step-list-slot.over { border-color: var(--cyan); background: rgba(0,229,255,0.08); }
+
+/* Toast */
+#toast-container { position: fixed; top: 70px; right: 12px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; max-width: calc(100vw - 24px); }
+.toast { padding: 12px 16px; border-radius: 12px; background: var(--surface-2); backdrop-filter: blur(16px); border: 1px solid var(--border-strong); box-shadow: 0 8px 30px rgba(0,0,0,0.4); animation: toastIn 0.4s, toastOut 0.4s 3s forwards; display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 13px; }
+@keyframes toastIn { from{transform:translateX(120%);opacity:0} to{transform:translateX(0);opacity:1} }
+@keyframes toastOut { to{transform:translateX(120%);opacity:0} }
+.toast.success { border-color: var(--lime); color: var(--lime); }
+.toast.error { border-color: var(--pink); color: var(--pink); }
+.toast.info { border-color: var(--cyan); color: var(--cyan); }
+.toast.warning { border-color: var(--gold); color: var(--gold); }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; z-index: 999; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 16px; animation: fadeIn 0.3s; }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+.modal-content { background: var(--bg-2); border: 1px solid var(--border-strong); border-radius: 20px; padding: 28px; max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; animation: modalIn 0.5s cubic-bezier(.2,.8,.2,1); position: relative; box-shadow: 0 25px 60px rgba(0,0,0,0.6), 0 0 50px rgba(0,229,255,0.2); }
+@keyframes modalIn { from{transform:scale(0.85) translateY(30px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
+
+/* XP pop */
+.xp-pop { position: fixed; pointer-events: none; z-index: 999; font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 20px; color: var(--lime); text-shadow: 0 0 18px var(--lime); animation: xpPop 1.5s forwards; }
+@keyframes xpPop { 0%{transform:translateY(0) scale(0.5);opacity:0} 20%{transform:translateY(-18px) scale(1.2);opacity:1} 100%{transform:translateY(-90px) scale(1);opacity:0} }
+
+/* Badge */
+.badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border-strong); font-weight: 700; font-size: 12px; }
+.badge.earned { border-color: var(--gold); background: rgba(255,215,0,0.1); box-shadow: 0 0 18px rgba(255,215,0,0.3); }
+
+/* Star */
+.star { font-size: 24px; color: rgba(255,255,255,0.15); transition: all 0.3s; }
+.star.filled { color: var(--gold); text-shadow: 0 0 12px var(--gold); animation: starPop 0.5s; }
+@keyframes starPop { 0%{transform:scale(0) rotate(-180deg)} 100%{transform:scale(1) rotate(0)} }
+
+/* Timer */
+.timer-display { font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 20px; padding: 6px 14px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border-strong); color: var(--cyan); box-shadow: 0 0 18px rgba(0,229,255,0.2); }
+.timer-display.warning { color: var(--gold); border-color: var(--gold); }
+.timer-display.danger { color: var(--pink); border-color: var(--pink); animation: pulse 1s infinite; }
+
+/* Input */
+.input-field { width: 100%; padding: 10px 14px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border-strong); color: var(--text); font-family: inherit; font-size: 14px; transition: all 0.25s; }
+.input-field:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 18px rgba(0,229,255,0.25); }
+.input-field::placeholder { color: var(--muted); }
+textarea.input-field { resize: vertical; min-height: 70px; }
+
+/* Table */
+.data-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; min-width: 700px; }
+.data-table th { background: var(--surface-2); padding: 10px 14px; text-align: left; font-weight: 700; color: var(--cyan); border-bottom: 1px solid var(--border-strong); position: sticky; top: 0; white-space: nowrap; }
+.data-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.data-table tr:hover td { background: rgba(0,229,255,0.05); }
+
+/* Print */
+@media print {
+  body * { visibility: hidden; }
+  #print-area, #print-area * { visibility: visible; }
+  #print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20mm; background: white; color: black; }
+  .no-print { display: none !important; }
+  @page { size: A4 portrait; margin: 10mm; }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-2); }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
+
+#confetti { z-index: 998; pointer-events: none; }
+
+/* Achievement */
+.achievement { padding: 14px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--border); text-align: center; transition: all 0.3s; }
+.achievement.earned { border-color: var(--gold); background: linear-gradient(135deg, rgba(255,215,0,0.15), transparent); box-shadow: 0 0 22px rgba(255,215,0,0.2); }
+.achievement.locked { opacity: 0.4; filter: grayscale(0.8); }
+.achievement-icon { font-size: 32px; margin-bottom: 6px; }
+
+/* Flow arrow */
+.flow-arrow { display: flex; align-items: center; justify-content: center; color: var(--cyan); font-size: 18px; margin: 3px 0; animation: arrowPulse 2s infinite; }
+@keyframes arrowPulse { 0%,100%{opacity:0.5;transform:translateY(0)} 50%{opacity:1;transform:translateY(3px)} }
+
+/* Tab buttons */
+.tab-btn { padding: 8px 14px; border-radius: 10px; font-weight: 700; cursor: pointer; background: transparent; color: var(--muted); border: 1px solid transparent; transition: all 0.2s; font-size: 13px; }
+.tab-btn.active { background: var(--surface-2); color: var(--cyan); border-color: var(--border-strong); }
+.tab-btn:hover:not(.active) { color: var(--text); }
+
+/* Admin login */
+.admin-login-page { min-height: calc(100vh - 56px); display: flex; align-items: center; justify-content: center; padding: 16px; position: relative; overflow: hidden; }
+.admin-login-card { position: relative; z-index: 2; width: 100%; max-width: 400px; background: var(--surface); backdrop-filter: blur(20px); border: 1px solid var(--border-strong); border-radius: 20px; padding: 32px 28px; box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 50px rgba(0,229,255,0.15); }
+.admin-login-icon { width: 72px; height: 72px; margin: 0 auto 16px; border-radius: 18px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--cyan), var(--purple)); box-shadow: 0 0 35px rgba(0,229,255,0.5); font-size: 30px; color: white; animation: pulse 2s infinite; }
+.admin-login-title { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 22px; text-align: center; margin-bottom: 6px; }
+.admin-login-sub { text-align: center; color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+.admin-input-group { margin-bottom: 14px; }
+.admin-input-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 5px; display: block; }
+.admin-input-wrap { position: relative; }
+.admin-input-wrap i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; }
+.admin-input-wrap .input-field { padding-left: 38px; }
+.admin-demo-box { margin-top: 16px; padding: 10px 14px; border-radius: 10px; background: rgba(0,229,255,0.08); border: 1px dashed var(--border-strong); font-size: 11px; color: var(--muted); text-align: center; }
+.admin-demo-box strong { color: var(--cyan); }
+.admin-back-link { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 16px; color: var(--muted); font-size: 12px; cursor: pointer; transition: color 0.2s; }
+.admin-back-link:hover { color: var(--cyan); }
+.grid-bg { position: absolute; inset: 0; pointer-events: none; opacity: 0.12; background-image: linear-gradient(rgba(0,229,255,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(0,229,255,0.3) 1px, transparent 1px); background-size: 50px 50px; mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%); -webkit-mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%); }
+
+/* Glow text */
+.glow-cyan { text-shadow: 0 0 18px var(--cyan); }
+.glow-gold { text-shadow: 0 0 18px var(--gold); }
+.glow-lime { text-shadow: 0 0 18px var(--lime); }
+.glow-pink { text-shadow: 0 0 18px var(--pink); }
+
+/* Mobile responsive helpers */
+@media (max-width: 640px) {
+  .hero-title { font-size: 38px !important; }
+  .pattern-item { width: 48px; height: 48px; font-size: 24px; }
+  .robot { transform: scale(0.7); }
+  .floating-card { display: none; }
+  .glass { border-radius: 16px; }
+  .modal-content { padding: 20px; border-radius: 16px; }
+}
+@media (max-width: 380px) {
+  .hero-title { font-size: 32px !important; }
+  .pattern-item { width: 42px; height: 42px; font-size: 20px; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+<div id="three-bg"></div>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar no-print">
+  <div class="nav-wrap">
+    <div class="nav-logo" onclick="go('landing')">
+      <div class="nav-logo-icon"><i class="fa-solid fa-cube text-white text-base"></i></div>
+      <div>
+        <div class="nav-logo-text">BREAK IT DOWN</div>
+        <div class="nav-logo-sub">Computational City</div>
+      </div>
+    </div>
+    <div class="nav-menu">
+      <div class="nav-link" data-nav="landing" onclick="go('landing')"><i class="fa-solid fa-house"></i><span>Beranda</span></div>
+      <div class="nav-link" data-nav="dashboard" onclick="go('dashboard')"><i class="fa-solid fa-gamepad"></i><span>Game</span></div>
+      <div class="nav-link" data-nav="materi" onclick="go('materi')"><i class="fa-solid fa-book"></i><span>Materi</span></div>
+      <div class="nav-link" data-nav="lkpd" onclick="go('lkpd')"><i class="fa-solid fa-clipboard"></i><span>LKPD</span></div>
+      <div class="nav-link" data-nav="penilaian" onclick="go('penilaian')"><i class="fa-solid fa-chart-bar"></i><span>Penilaian</span></div>
+      <div class="nav-link" data-nav="prestasi" onclick="go('prestasi')"><i class="fa-solid fa-trophy"></i><span>Prestasi</span></div>
+      <div class="nav-link" data-nav="guru" onclick="go('guru')"><i class="fa-solid fa-user-tie"></i><span>Guru</span></div>
+    </div>
+    <div class="nav-actions">
+      <button onclick="toggleDark()" class="nav-btn" title="Mode terang/gelap"><i class="fa-solid fa-moon" id="darkIcon"></i></button>
+      <button onclick="toggleSound()" class="nav-btn" title="Sound Effect"><i class="fa-solid fa-volume-high" id="soundIcon"></i></button>
+      <button onclick="toggleMusic()" class="nav-btn" id="musicBtn" title="Musik Background"><i class="fa-solid fa-music"></i></button>
+      <div class="nav-player" onclick="go('dashboard')">
+        <div class="nav-player-avatar"><i class="fa-solid fa-user-astronaut"></i></div>
+        <span class="nav-player-name" id="navPlayerName">Tamu</span>
+        <span class="nav-player-xp" id="navXP">0 XP</span>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== BOTTOM NAV (MOBILE) ===== -->
+<div class="bottom-nav no-print">
+  <div class="bottom-nav-item" data-nav="landing" onclick="go('landing')"><i class="fa-solid fa-house"></i><span>Beranda</span></div>
+  <div class="bottom-nav-item" data-nav="dashboard" onclick="go('dashboard')"><i class="fa-solid fa-gamepad"></i><span>Game</span></div>
+  <div class="bottom-nav-item" data-nav="materi" onclick="go('materi')"><i class="fa-solid fa-book"></i><span>Materi</span></div>
+  <div class="bottom-nav-item" data-nav="lkpd" onclick="go('lkpd')"><i class="fa-solid fa-clipboard"></i><span>LKPD</span></div>
+  <div class="bottom-nav-item" data-nav="penilaian" onclick="go('penilaian')"><i class="fa-solid fa-chart-bar"></i><span>Nilai</span></div>
+  <div class="bottom-nav-item" data-nav="prestasi" onclick="go('prestasi')"><i class="fa-solid fa-trophy"></i><span>Prestasi</span></div>
+  <div class="bottom-nav-item" data-nav="guru" onclick="go('guru')"><i class="fa-solid fa-user-tie"></i><span>Guru</span></div>
+</div>
+
+<main id="app">
+
+<!-- ===== VIEW: LANDING ===== -->
+<section id="view-landing" class="view">
+  <div class="relative min-h-[calc(100vh-56px)] flex items-center justify-center px-4 py-8 overflow-hidden">
+    <div class="floating-card hidden md:block" style="top:18%;left:5%"><i class="fa-solid fa-puzzle-piece" style="color:var(--cyan)"></i> Dekomposisi</div>
+    <div class="floating-card hidden md:block" style="top:25%;right:5%;animation-delay:1.5s"><i class="fa-solid fa-magnifying-glass" style="color:var(--pink)"></i> Pola</div>
+    <div class="floating-card hidden md:block" style="bottom:30%;left:8%;animation-delay:3s"><i class="fa-solid fa-bullseye" style="color:var(--lime)"></i> Abstraksi</div>
+    <div class="floating-card hidden md:block" style="bottom:22%;right:5%;animation-delay:2s"><i class="fa-solid fa-gears" style="color:var(--gold)"></i> Algoritma</div>
+    <div class="max-w-7xl w-full grid lg:grid-cols-2 gap-8 lg:gap-12 items-center relative z-10">
+      <div class="text-center lg:text-left">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4" style="background:var(--surface);border:1px solid var(--border-strong)">
+          <span class="w-2 h-2 rounded-full" style="background:var(--lime);box-shadow:0 0 8px var(--lime);animation:pulse 1.5s infinite"></span>
+          <span class="text-xs font-bold uppercase tracking-widest" style="color:var(--lime)">Informatika SMP Kelas 7</span>
+        </div>
+        <h1 class="hero-title text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-3">MISSION:<br/>BREAK IT<br/>DOWN!</h1>
+        <p class="text-sm md:text-base mb-2 font-display tracking-wide" style="color:var(--cyan)">Petualangan Berpikir Komputasional</p>
+        <p class="text-xs md:text-sm mb-6 max-w-xl mx-auto lg:mx-0" style="color:var(--muted)">"Masalah besar terlihat sulit. Pecah menjadi bagian kecil, temukan polanya, fokus pada hal penting, lalu susun langkah penyelesaiannya!"</p>
+        <div class="flex flex-wrap gap-2 sm:gap-3 justify-center lg:justify-start">
+          <button class="btn-neon" onclick="go('dashboard')"><i class="fa-solid fa-rocket mr-2"></i>MULAI</button>
+          <button class="btn-ghost" onclick="go('materi')"><i class="fa-solid fa-book mr-1"></i>Materi</button>
+          <button class="btn-ghost" onclick="go('lkpd')"><i class="fa-solid fa-clipboard mr-1"></i>LKPD</button>
+          <button class="btn-ghost" onclick="go('penilaian')"><i class="fa-solid fa-trophy mr-1"></i>Nilai</button>
+        </div>
+        <div class="mt-6 flex gap-4 justify-center lg:justify-start text-xs flex-wrap" style="color:var(--muted)">
+          <div><i class="fa-solid fa-users mr-1"></i> Individual/Kelompok</div>
+          <div><i class="fa-solid fa-clock mr-1"></i> ±90 Menit</div>
+          <div><i class="fa-solid fa-cube mr-1"></i> 4 World+Final</div>
+        </div>
+      </div>
+      <div class="relative flex justify-center">
+        <div class="robot">
+          <div class="robot-head"><div class="robot-antenna"></div><div class="robot-eye left"></div><div class="robot-eye right"></div><div class="robot-mouth"></div></div>
+          <div class="robot-body"><div class="robot-chest"></div><div class="robot-arm left"></div><div class="robot-arm right"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="hidden md:block absolute bottom-4 left-0 right-0 px-4">
+      <div class="max-w-5xl mx-auto glass p-4 grid grid-cols-4 gap-3">
+        <div class="text-center"><div class="font-display font-black text-xl glow-cyan" style="color:var(--cyan)">04</div><div class="text-xs" style="color:var(--muted)">World Game</div></div>
+        <div class="text-center"><div class="font-display font-black text-xl glow-gold" style="color:var(--gold)">06</div><div class="text-xs" style="color:var(--muted)">Level</div></div>
+        <div class="text-center"><div class="font-display font-black text-xl glow-lime" style="color:var(--lime)">05</div><div class="text-xs" style="color:var(--muted)">Badge</div></div>
+        <div class="text-center"><div class="font-display font-black text-xl glow-pink" style="color:var(--pink)">1000</div><div class="text-xs" style="color:var(--muted)">XP Max</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== VIEW: DASHBOARD ===== -->
+<section id="view-dashboard" class="view hidden">
+  <div class="max-w-7xl mx-auto px-3 sm:px-4 py-6">
+    <div class="glass p-4 sm:p-6 mb-5">
+      <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+        <div>
+          <h2 class="font-display text-xl sm:text-2xl font-black mb-1">DASHBOARD PEMAIN</h2>
+          <p style="color:var(--muted)" class="text-xs sm:text-sm">Selamat datang di Computational City!</p>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="badge" id="badgeLevel"><i class="fa-solid fa-shield"></i> Level 1</span>
+          <span class="badge earned" id="badgeStreak"><i class="fa-solid fa-fire" style="color:var(--orange)"></i> <span id="streakText">0</span> Streak</span>
+        </div>
+      </div>
+      <div class="grid sm:grid-cols-3 gap-3 mb-4">
+        <div><label class="text-xs font-bold uppercase tracking-wider mb-1.5 block" style="color:var(--muted)">Nama Siswa</label><input type="text" class="input-field" id="inpName" placeholder="Masukkan nama..." /></div>
+        <div><label class="text-xs font-bold uppercase tracking-wider mb-1.5 block" style="color:var(--muted)">Kelas</label><select class="input-field" id="inpClass"><option value="">Pilih kelas...</option><option>VII A</option><option>VII B</option><option>VII C</option><option>VII D</option><option>VII E</option><option>VII F</option></select></div>
+        <div><label class="text-xs font-bold uppercase tracking-wider mb-1.5 block" style="color:var(--muted)">Kelompok</label><input type="text" class="input-field" id="inpGroup" placeholder="Contoh: Kelompok 1" /></div>
+      </div>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div class="glass p-3"><div class="text-xs uppercase tracking-wider mb-1" style="color:var(--muted)">XP</div><div class="font-display font-black text-xl glow-cyan" style="color:var(--cyan)"><span id="statXP">0</span><span class="text-xs" style="color:var(--muted)"> /1000</span></div><div class="progress-bar mt-2"><div class="progress-fill" id="xpBar" style="width:0%"></div></div></div>
+        <div class="glass p-3"><div class="text-xs uppercase tracking-wider mb-1" style="color:var(--muted)">Skor</div><div class="font-display font-black text-xl glow-gold" style="color:var(--gold)" id="statScore">0</div><div class="text-xs mt-1" style="color:var(--muted)">Total poin</div></div>
+        <div class="glass p-3"><div class="text-xs uppercase tracking-wider mb-1" style="color:var(--muted)">Bintang</div><div class="flex gap-1 mt-1"><span class="star" id="star1">★</span><span class="star" id="star2">★</span><span class="star" id="star3">★</span></div><div class="text-xs mt-1" style="color:var(--muted)"><span id="starCount">0</span>/3</div></div>
+        <div class="glass p-3"><div class="text-xs uppercase tracking-wider mb-1" style="color:var(--muted)">Energy</div><div class="energy-bar mt-1" id="energyBar"></div><div class="text-xs mt-1" style="color:var(--muted)"><span id="energyVal">100</span>/100</div></div>
+      </div>
+    </div>
+    <h3 class="font-display text-lg sm:text-xl font-black mb-3 flex items-center gap-2"><i class="fa-solid fa-map" style="color:var(--cyan)"></i> PETA DUNIA</h3>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div class="world-card" style="--accent-color:var(--cyan)" onclick="openWorld(1)"><div class="world-icon"><i class="fa-solid fa-puzzle-piece" style="color:var(--cyan)"></i></div><div class="text-xs uppercase tracking-widest font-bold" style="color:var(--cyan)">World 1</div><div class="font-display font-black text-lg mb-1">DEKOMPOSISI</div><p class="text-xs mb-2" style="color:var(--muted)">Pecahkan masalah besar menjadi bagian kecil.</p><div class="flex items-center justify-between text-xs"><span style="color:var(--muted)"><i class="fa-solid fa-star" style="color:var(--gold)"></i> <span id="w1stars">0</span>/3</span><span style="color:var(--cyan)" id="w1status">TERBUKA</span></div></div>
+      <div class="world-card locked" style="--accent-color:var(--pink)" id="wc2" onclick="openWorld(2)"><div class="world-icon"><i class="fa-solid fa-magnifying-glass" style="color:var(--pink)"></i></div><div class="text-xs uppercase tracking-widest font-bold" style="color:var(--pink)">World 2</div><div class="font-display font-black text-lg mb-1">PENGENALAN POLA</div><p class="text-xs mb-2" style="color:var(--muted)">Temukan pola berulang dari masalah.</p><div class="flex items-center justify-between text-xs"><span style="color:var(--muted)"><i class="fa-solid fa-star" style="color:var(--gold)"></i> <span id="w2stars">0</span>/3</span><span style="color:var(--muted)"><i class="fa-solid fa-lock"></i> TERKUNCI</span></div></div>
+      <div class="world-card locked" style="--accent-color:var(--lime)" id="wc3" onclick="openWorld(3)"><div class="world-icon"><i class="fa-solid fa-bullseye" style="color:var(--lime)"></i></div><div class="text-xs uppercase tracking-widest font-bold" style="color:var(--lime)">World 3</div><div class="font-display font-black text-lg mb-1">ABSTRAKSI</div><p class="text-xs mb-2" style="color:var(--muted)">Fokus pada informasi penting.</p><div class="flex items-center justify-between text-xs"><span style="color:var(--muted)"><i class="fa-solid fa-star" style="color:var(--gold)"></i> <span id="w3stars">0</span>/3</span><span style="color:var(--muted)"><i class="fa-solid fa-lock"></i> TERKUNCI</span></div></div>
+      <div class="world-card locked" style="--accent-color:var(--gold)" id="wc4" onclick="openWorld(4)"><div class="world-icon"><i class="fa-solid fa-gears" style="color:var(--gold)"></i></div><div class="text-xs uppercase tracking-widest font-bold" style="color:var(--gold)">World 4</div><div class="font-display font-black text-lg mb-1">ALGORITMA</div><p class="text-xs mb-2" style="color:var(--muted)">Susun langkah terurut sistematis.</p><div class="flex items-center justify-between text-xs"><span style="color:var(--muted)"><i class="fa-solid fa-star" style="color:var(--gold)"></i> <span id="w4stars">0</span>/3</span><span style="color:var(--muted)"><i class="fa-solid fa-lock"></i> TERKUNCI</span></div></div>
+      <div class="world-card locked" style="--accent-color:var(--purple)" id="wc5" onclick="openWorld(5)"><div class="world-icon"><i class="fa-solid fa-trophy" style="color:var(--purple)"></i></div><div class="text-xs uppercase tracking-widest font-bold" style="color:var(--purple)">Final Mission</div><div class="font-display font-black text-lg mb-1">MASTER SOLVER</div><p class="text-xs mb-2" style="color:var(--muted)">Gabungkan 4 konsep untuk misi terbesar!</p><div class="flex items-center justify-between text-xs"><span style="color:var(--muted)"><i class="fa-solid fa-crown" style="color:var(--gold)"></i> +500 XP</span><span style="color:var(--muted)"><i class="fa-solid fa-lock"></i> TERKUNCI</span></div></div>
+      <div class="world-card" style="--accent-color:var(--orange)" onclick="go('prestasi')"><div class="world-icon"><i class="fa-solid fa-medal" style="color:var(--orange)"></i></div><div class="text-xs uppercase tracking-widest font-bold" style="color:var(--orange)">Hall of Fame</div><div class="font-display font-black text-lg mb-1">PRESTASI</div><p class="text-xs mb-2" style="color:var(--muted)">Lihat badge dan pencapaian.</p><div class="flex items-center justify-between text-xs"><span style="color:var(--muted)"><span id="badgeCount">0</span>/5 badge</span><span style="color:var(--orange)">LIHAT →</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== VIEW: WORLD 1 ===== -->
+<section id="view-world1" class="view hidden">
+  <div class="max-w-7xl mx-auto px-3 sm:px-4 py-6">
+    <button onclick="go('dashboard')" class="btn-ghost mb-4"><i class="fa-solid fa-arrow-left mr-2"></i>Dashboard</button>
+    <div class="glass p-4 sm:p-6 mb-5">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="world-icon" style="--accent-color:var(--cyan);margin:0;width:50px;height:50px;font-size:22px"><i class="fa-solid fa-puzzle-piece" style="color:var(--cyan)"></i></div>
+        <div><div class="text-xs uppercase tracking-widest font-bold" style="color:var(--cyan)">World 1</div><h2 class="font-display text-xl sm:text-2xl font-black">DEKOMPOSISI</h2></div>
+      </div>
+      <p style="color:var(--muted)" class="text-xs sm:text-sm">Pecah masalah besar menjadi bagian kecil. Seret kartu yang merupakan bagian dari masalah utama!</p>
+    </div>
+    <div class="grid lg:grid-cols-2 gap-4 sm:gap-6">
+      <div class="glass p-4 sm:p-6">
+        <h3 class="font-display font-bold mb-3 flex items-center gap-2 text-sm sm:text-base"><i class="fa-solid fa-box-archive" style="color:var(--cyan)"></i> KARTU MASALAH</h3>
+        <p class="text-xs mb-3" style="color:var(--muted)">Seret kartu yang merupakan bagian dari "Menyelenggarakan Acara Sekolah".</p>
+        <div class="space-y-2" id="decItems"></div>
+      </div>
+      <div class="glass p-4 sm:p-6">
+        <h3 class="font-display font-bold mb-3 flex items-center gap-2 text-sm sm:text-base"><i class="fa-solid fa-bullseye" style="color:var(--pink)"></i> MASALAH BESAR</h3>
+        <div class="rounded-xl p-3 mb-3 text-center" style="background:linear-gradient(135deg,rgba(255,45,117,0.15),rgba(177,77,255,0.1));border:2px solid var(--pink)">
+          <div class="text-xs uppercase tracking-widest font-bold mb-1" style="color:var(--pink)">Masalah Utama</div>
+          <div class="font-display font-black text-base sm:text-lg">MENYELENGGARAKAN ACARA SEKOLAH</div>
+        </div>
+        <div class="drop-zone" id="decDrop"><div class="text-center text-xs py-4" style="color:var(--muted)">Drop kartu di sini...</div></div>
+        <div class="mt-3 flex justify-between items-center">
+          <div class="text-xs" style="color:var(--muted)">Benar: <span id="decCorrect" style="color:var(--lime);font-weight:700">0</span>/<span id="decTotal">8</span></div>
+          <button class="btn-neon" onclick="checkDecomposition()"><i class="fa-solid fa-check mr-2"></i>PERIKSA</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== VIEW: WORLD 2 ===== -->
+<section id="view-world2" class="view hidden">
+  <div class="max-w-7xl mx-auto px-3 sm:px-4 py-6">
+    <button onclick="go('dashboard')" class="btn-ghost mb-4"><i class="fa-solid fa-arrow-left mr-2"></i>Dashboard</button>
+    <div class="glass p-4 sm:p-6 mb-5">
+      <div class="flex items-center justify-between flex-wrap gap-3">
+        <div class="flex items-center gap-3">
+          <div class="world-icon" style="--accent-color:var(--pink);margin:0;width:50px;height:50px;font-size:22px"><i class="fa-solid fa-magnifying-glass" style="color:var(--pink)"></i></div>
+          <div><div class="text-xs uppercase tracking-widest font-bold" style="color:var(--pink)">World 2</div><h2 class="font-display text-xl sm:text-2xl font-black">PENGENALAN POLA</h2></div>
+        </div>
+        <div class="flex items-center gap-3"><div class="text-xs" style="color:var(--muted)">Level <span id="patLevel" style="color:var(--cyan);font-weight:700">1</span>/6</div><div class="timer-display" id="patTimer">00:30</div></div>
+      </div>
+    </div>
+    <div class="glass p-4 sm:p-8 mb-5 text-center">
+      <div class="text-xs uppercase tracking-widest font-bold mb-4" style="color:var(--pink)" id="patTitle">POLA WARNA</div>
+      <div class="pattern-seq" id="patSequence"></div>
+      <div class="mt-4 text-xs sm:text-sm" style="color:var(--muted)">Apa yang muncul berikutnya?</div>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5" id="patOptions"></div>
+    <div class="glass p-4" id="patExplain" style="display:none">
+      <div class="flex items-start gap-3"><i class="fa-solid fa-lightbulb text-xl" style="color:var(--gold)"></i><div><div class="font-bold mb-1 text-sm">Penjelasan</div><div class="text-xs" style="color:var(--muted)" id="patExplainText"></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== VIEW: WORLD 3 ===== -->
+<section id="view-world3" class="view hidden">
+  <div class="max-w-7xl mx-auto px-3 sm:px-4 py-6">
+    <button onclick="go('dashboard')" class="btn-ghost mb-4"><i class="fa-solid fa-arrow-left mr-2"></i>Dashboard</button>
+    <div class="glass p-4 sm:p-6 mb-5">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="world-icon" style="--accent-color:var(--lime);margin:0;width:50px;height:50px;font-size:22px"><i class="fa-solid fa-bullseye" style="color:var(--lime)"></i></div>
+        <div><div class="text-xs uppercase tracking-widest font-bold" style="color:var(--lime)">World 3</div><h2 class="font-display text-xl sm:text-2xl font-black">ABSTRAKSI</h2></div>
+      </div>
+      <p style="color:var(--muted)" class="text-xs sm:text-sm">Pilih informasi yang benar-benar penting untuk menyelesaikan masalah!</p>
+    </div>
+    <div class="glass p-4 sm:p-6 mb-5 text-center">
+      <div class="text-xs uppercase tracking-widest font-bold mb-2" style="color:var(--lime)">SKENARIO</div>
+      <div class="font-display font-black text-base sm:text-xl">"Kamu ingin pergi dari sekolah ke perpustakaan."</div>
+    </div>
+    <div class="grid lg:grid-cols-3 gap-4">
+      <div class="glass p-4"><h3 class="font-display font-bold mb-3 flex items-center gap-2 text-sm"><i class="fa-solid fa-list" style="color:var(--cyan)"></i> INFORMASI</h3><div class="space-y-2" id="absItems"></div></div>
+      <div class="glass p-4"><h3 class="font-display font-bold mb-3 flex items-center gap-2 text-sm"><i class="fa-solid fa-circle-check" style="color:var(--lime)"></i> PENTING</h3><div class="drop-zone min-h-[150px]" id="absDropImportant" style="border-color:var(--lime)"></div></div>
+      <div class="glass p-4"><h3 class="font-display font-bold mb-3 flex items-center gap-2 text-sm"><i class="fa-solid fa-circle-xmark" style="color:var(--pink)"></i> TIDAK PENTING</h3><div class="drop-zone min-h-[150px]" id="absDropNotImportant" style="border-color:var(--pink)"></div></div>
+    </div>
+    <div class="mt-5 flex justify-end"><button class="btn-neon lime" onclick="checkAbstraction()"><i class="fa-solid fa-check mr-2"></i>PERIKSA</button></div>
+  </div>
+</section>
+
+<!-- ===== VIEW: WORLD 4 ===== -->
+<section id="view-world4" class="view hidden">
+  <div class="max-w-7xl mx-auto px-3 sm:px-4 py-6">
+    <button onclick="go('dashboard')" class="btn-ghost mb-4"><i class="fa-solid fa-arrow-left mr-2"></i>Dashboard</button>
+    <div class="glass p-4 sm:p-6 mb-5">
+      <div class="flex items-center justify-between flex-wrap gap-3">
+        <div class="flex items-center gap-3">
+          <div class="world-icon" style="--accent-color:var(--gold);margin:0;width:50px;height:50px;font-size:22px"><i class="fa-solid fa-gears" style="color:var(--gold)"></i></div>
+          <div><div class="text-xs uppercase tracking-widest font-bold" style="color:var(--gold)">World 4</div><h2 class="font-display text-xl sm:text-2xl font-black">ALGORITMA</h2></div>
+        </div>
+        <div class="flex gap-2 flex-wrap" id="algMissions"></div>
+      </div>
+    </div>
+    <div class="glass p-4 mb-4"><div class="text-xs uppercase tracking-widest font-bold mb-1" style="color:var(--gold)">MISI SAAT INI</div><div class="font-display font-black text-base sm:text-lg" id="algTitle">Membuat Akun Email</div></div>
+    <div class="grid lg:grid-cols-2 gap-4 sm:gap-6">
+      <div class="glass p-4 sm:p-6"><h3 class="font-display font-bold mb-3 flex items-center gap-2 text-sm sm:text-base"><i class="fa-solid fa-shuffle" style="color:var(--cyan)"></i> LANGKAH ACAK</h3><div class="space-y-2" id="algShuffled"></div></div>
+      <div class="glass p-4 sm:p-6"><h3 class="font-display font-bold mb-3 flex items-center gap-2 text-sm sm:text-base"><i class="fa-solid fa-list-ol" style="color:var(--lime)"></i> URUTAN BENAR</h3><div class="space-y-2" id="algOrdered"></div><div class="mt-4 flex justify-end"><button class="btn-neon" onclick="checkAlgorithm()"><i class="fa-solid fa-check mr-2"></i>PERIKSA</button></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== VIEW: FINAL MISSION ===== -->
+<section id="view-world5" class="view hidden">
+  <div class="max-w-5xl mx-auto px-3 sm:px-4 py-6">
+    <button onclick="go('dashboard')" class="btn-ghost mb-4"><i class="fa-solid fa-arrow-left mr-2"></i>Dashboard</button>
+    <div class="glass p-6 mb-5 text-center" style="background:linear-gradient(135deg,rgba(177,77,255,0.15),rgba(255,215,0,0.1));border-color:var(--purple)">
+      <div class="text-5xl mb-2">🏆</div>
+      <h2 class="font-display text-2xl sm:text-3xl font-black mb-2">MASTER PROBLEM SOLVER</h2>
+      <p style="color:var(--muted)" class="text-xs sm:text-sm">Selesaikan dengan empat tahap berpikir komputasional!</p>
+    </div>
+    <div class="glass p-4 sm:p-6 mb-4">
+      <div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-xl flex items-center justify-center font-display font-black text-sm" style="background:linear-gradient(135deg,var(--cyan),var(--purple));color:white">01</div><div><div class="text-xs uppercase font-bold" style="color:var(--cyan)">🧩 DEKOMPOSISI</div><div class="font-display font-bold text-sm sm:text-base">Pecah masalah "Class Meeting" menjadi bagian kecil</div></div></div>
+      <textarea class="input-field" id="finalDec" placeholder="Tulis minimal 5 sub-masalah..." rows="4"></textarea>
+    </div>
+    <div class="glass p-4 sm:p-6 mb-4">
+      <div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-xl flex items-center justify-center font-display font-black text-sm" style="background:linear-gradient(135deg,var(--pink),var(--purple));color:white">02</div><div><div class="text-xs uppercase font-bold" style="color:var(--pink)">🔍 PENGENALAN POLA</div><div class="font-display font-bold text-sm sm:text-base">Pola apa yang muncul dari class meeting sebelumnya?</div></div></div>
+      <textarea class="input-field" id="finalPat" placeholder="Contoh: setiap tahun ada lomba olahraga..." rows="3"></textarea>
+    </div>
+    <div class="glass p-4 sm:p-6 mb-4">
+      <div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-xl flex items-center justify-center font-display font-black text-sm" style="background:linear-gradient(135deg,var(--lime),var(--cyan));color:white">03</div><div><div class="text-xs uppercase font-bold" style="color:var(--lime)">🎯 ABSTRAKSI</div><div class="font-display font-bold text-sm sm:text-base">Informasi apa yang benar-benar penting?</div></div></div>
+      <textarea class="input-field" id="finalAbs" placeholder="Contoh: jumlah peserta, jenis lomba..." rows="3"></textarea>
+    </div>
+    <div class="glass p-4 sm:p-6 mb-5">
+      <div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-xl flex items-center justify-center font-display font-black text-sm" style="background:linear-gradient(135deg,var(--gold),var(--orange));color:white">04</div><div><div class="text-xs uppercase font-bold" style="color:var(--gold)">⚙️ ALGORITMA</div><div class="font-display font-bold text-sm sm:text-base">Susun langkah penyelesaiannya secara sistematis</div></div></div>
+      <textarea class="input-field" id="finalAlg" placeholder="Langkah 1: ...&#10;Langkah 2: ..." rows="5"></textarea>
+    </div>
+    <div class="text-center"><button class="btn-neon gold" onclick="submitFinal()"><i class="fa-solid fa-trophy mr-2"></i>SELESAIKAN MISI</button></div>
+  </div>
+</section>
+
+<!-- ===== VIEW: MATERI ===== -->
+<section id="view-materi" class="view hidden">
+  <div class="max-w-6xl mx-auto px-3 sm:px-4 py-6">
+    <div class="glass p-4 sm:p-6 mb-5"><h2 class="font-display text-xl sm:text-2xl font-black mb-2">📚 MATERI PEMBELAJARAN</h2><p style="color:var(--muted)" class="text-xs sm:text-sm">Empat pilar Berpikir Komputasional!</p></div>
+    <div class="flex gap-2 mb-5 flex-wrap"><button class="tab-btn active" data-tab="dec" onclick="switchMateriTab('dec')"><i class="fa-solid fa-puzzle-piece mr-1"></i>Dekomposisi</button><button class="tab-btn" data-tab="pat" onclick="switchMateriTab('pat')"><i class="fa-solid fa-magnifying-glass mr-1"></i>Pola</button><button class="tab-btn" data-tab="abs" onclick="switchMateriTab('abs')"><i class="fa-solid fa-bullseye mr-1"></i>Abstraksi</button><button class="tab-btn" data-tab="alg" onclick="switchMateriTab('alg')"><i class="fa-solid fa-gears mr-1"></i>Algoritma</button></div>
+    <div class="glass p-4 sm:p-8" id="materiContent"></div>
+  </div>
+</section>
+
+<!-- ===== VIEW: LKPD ===== -->
+<section id="view-lkpd" class="view hidden">
+  <div class="max-w-5xl mx-auto px-3 sm:px-4 py-6">
+    <div class="glass p-4 sm:p-6 mb-5 no-print">
+      <div class="flex items-center justify-between flex-wrap gap-3">
+        <div><h2 class="font-display text-xl sm:text-2xl font-black mb-1">📋 LKPD</h2><p style="color:var(--muted)" class="text-xs sm:text-sm">Lembar Kerja Peserta Didik</p></div>
+        <div class="flex gap-2"><button class="btn-ghost" onclick="saveLKPD()"><i class="fa-solid fa-floppy-disk mr-1"></i>SIMPAN</button><button class="btn-neon" onclick="window.print()"><i class="fa-solid fa-print mr-1"></i>CETAK</button></div>
+      </div>
+    </div>
+    <div class="glass p-4 sm:p-8" id="print-area">
+      <div class="text-center mb-5 pb-3 border-b-2" style="border-color:var(--border-strong)"><div class="font-display font-black text-lg sm:text-xl">LEMBAR KERJA PESERTA DIDIK</div><div class="text-xs mt-1" style="color:var(--muted)">Berpikir Komputasional – Informatika SMP Kelas 7</div></div>
+      <div class="grid grid-cols-2 gap-3 mb-5 text-xs sm:text-sm"><div>Nama: <input type="text" class="input-field mt-1" id="lkpdName" placeholder="Nama lengkap" /></div><div>Kelas: <input type="text" class="input-field mt-1" id="lkpdClass" placeholder="Kelas" /></div><div>Kelompok: <input type="text" class="input-field mt-1" id="lkpdGroup" placeholder="Kelompok" /></div><div>Tanggal: <input type="date" class="input-field mt-1" id="lkpdDate" /></div></div>
+      <div class="mb-6"><div class="font-display font-bold text-base mb-2" style="color:var(--cyan)">AKTIVITAS 1 — DEKOMPOSISI</div><p class="text-xs mb-2">Masalah: <strong>"Bagaimana cara mempersiapkan kegiatan sekolah?"</strong></p><div class="overflow-x-auto"><table class="data-table" style="background:var(--surface)"><thead><tr><th>No</th><th>Masalah Kecil</th><th>Penanggung Jawab</th><th>Solusi</th></tr></thead><tbody><tr><td>1</td><td><input type="text" class="input-field" id="lkpd_t1_1" /></td><td><input type="text" class="input-field" id="lkpd_t1_2" /></td><td><input type="text" class="input-field" id="lkpd_t1_3" /></td></tr><tr><td>2</td><td><input type="text" class="input-field" id="lkpd_t2_1" /></td><td><input type="text" class="input-field" id="lkpd_t2_2" /></td><td><input type="text" class="input-field" id="lkpd_t2_3" /></td></tr><tr><td>3</td><td><input type="text" class="input-field" id="lkpd_t3_1" /></td><td><input type="text" class="input-field" id="lkpd_t3_2" /></td><td><input type="text" class="input-field" id="lkpd_t3_3" /></td></tr><tr><td>4</td><td><input type="text" class="input-field" id="lkpd_t4_1" /></td><td><input type="text" class="input-field" id="lkpd_t4_2" /></td><td><input type="text" class="input-field" id="lkpd_t4_3" /></td></tr><tr><td>5</td><td><input type="text" class="input-field" id="lkpd_t5_1" /></td><td><input type="text" class="input-field" id="lkpd_t5_2" /></td><td><input type="text" class="input-field" id="lkpd_t5_3" /></td></tr></tbody></table></div></div>
+      <div class="mb-6"><div class="font-display font-bold text-base mb-2" style="color:var(--pink)">AKTIVITAS 2 — PENGENALAN POLA</div><div class="space-y-2 text-xs sm:text-sm"><div>🔴 🔵 🔴 🔵 🔴 🔵 → <input type="text" class="input-field inline-block w-48 sm:w-64 ml-2" id="lkpd_p1" placeholder="Pola..." /></div><div>2, 4, 6, 8, 10, ... → <input type="text" class="input-field inline-block w-48 sm:w-64 ml-2" id="lkpd_p2" placeholder="Pola..." /></div><div>🔺🔻🔺🔻🔺 → <input type="text" class="input-field inline-block w-48 sm:w-64 ml-2" id="lkpd_p3" placeholder="Pola..." /></div></div><div class="mt-2"><label class="text-xs font-bold uppercase" style="color:var(--muted)">Jelaskan pola dari masalah sehari-hari:</label><textarea class="input-field mt-1" id="lkpd_p4" rows="2"></textarea></div></div>
+      <div class="mb-6"><div class="font-display font-bold text-base mb-2" style="color:var(--lime)">AKTIVITAS 3 — ABSTRAKSI</div><p class="text-xs mb-2">Skenario: <strong>"Membuat jadwal belajar."</strong></p><div class="grid grid-cols-2 gap-3 text-xs"><div><div class="font-bold mb-1" style="color:var(--lime)">PENTING:</div><textarea class="input-field" id="lkpd_a1" rows="3"></textarea></div><div><div class="font-bold mb-1" style="color:var(--pink)">TIDAK PENTING:</div><textarea class="input-field" id="lkpd_a2" rows="3"></textarea></div></div></div>
+      <div class="mb-6"><div class="font-display font-bold text-base mb-2" style="color:var(--gold)">AKTIVITAS 4 — ALGORITMA</div><p class="text-xs mb-2">"Bagaimana cara mengumpulkan tugas melalui Google Classroom?"</p><div class="space-y-2"><div class="flex items-center gap-2"><span class="step-number">1</span><input type="text" class="input-field flex-1" id="lkpd_s1" /></div><div class="flex items-center gap-2"><span class="step-number">2</span><input type="text" class="input-field flex-1" id="lkpd_s2" /></div><div class="flex items-center gap-2"><span class="step-number">3</span><input type="text" class="input-field flex-1" id="lkpd_s3" /></div><div class="flex items-center gap-2"><span class="step-number">4</span><input type="text" class="input-field flex-1" id="lkpd_s4" /></div><div class="flex items-center gap-2"><span class="step-number">5</span><input type="text" class="input-field flex-1" id="lkpd_s5" /></div><div class="flex items-center gap-2"><span class="step-number">6</span><input type="text" class="input-field flex-1" id="lkpd_s6" /></div><div class="flex items-center gap-2"><span class="step-number">7</span><input type="text" class="input-field flex-1" id="lkpd_s7" /></div></div></div>
+      <div><div class="font-display font-bold text-base mb-2" style="color:var(--purple)">AKTIVITAS 5 — TANTANGAN UTAMA</div><p class="text-xs mb-2">"Sistem antrean kantin agar siswa tidak berdesakan."</p><div class="space-y-2"><div><div class="text-xs font-bold mb-1" style="color:var(--cyan)">Dekomposisi:</div><textarea class="input-field" id="lkpd_f1" rows="2"></textarea></div><div><div class="text-xs font-bold mb-1" style="color:var(--pink)">Pola:</div><textarea class="input-field" id="lkpd_f2" rows="2"></textarea></div><div><div class="text-xs font-bold mb-1" style="color:var(--lime)">Abstraksi:</div><textarea class="input-field" id="lkpd_f3" rows="2"></textarea></div><div><div class="text-xs font-bold mb-1" style="color:var(--gold)">Algoritma:</div><textarea class="input-field" id="lkpd_f4" rows="3"></textarea></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== VIEW: PENILAIAN ===== -->
+<section id="view-penilaian" class="view hidden">
+  <div class="max-w-6xl mx-auto px-3 sm:px-4 py-6">
+    <div class="glass p-4 sm:p-6 mb-5"><h2 class="font-display text-xl sm:text-2xl font-black mb-2">📊 PEDOMAN PENILAIAN</h2><p style="color:var(--muted)" class="text-xs sm:text-sm">Skor maksimal 100 poin dari 4 aspek</p></div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5"><div class="glass p-3 text-center"><div class="font-display text-2xl font-black" style="color:var(--cyan)">25</div><div class="text-xs" style="color:var(--muted)">Dekomposisi</div></div><div class="glass p-3 text-center"><div class="font-display text-2xl font-black" style="color:var(--pink)">25</div><div class="text-xs" style="color:var(--muted)">Pola</div></div><div class="glass p-3 text-center"><div class="font-display text-2xl font-black" style="color:var(--lime)">25</div><div class="text-xs" style="color:var(--muted)">Abstraksi</div></div><div class="glass p-3 text-center"><div class="font-display text-2xl font-black" style="color:var(--gold)">25</div><div class="text-xs" style="color:var(--muted)">Algoritma</div></div></div>
+    <div class="glass p-4 sm:p-6 mb-5"><h3 class="font-display font-bold text-base sm:text-lg mb-3">🏆 KATEGORI NILAI</h3><div class="grid grid-cols-2 md:grid-cols-4 gap-2"><div class="p-2 rounded-lg text-center" style="background:rgba(57,255,20,0.1);border:1px solid var(--lime)"><div class="font-display font-bold text-sm" style="color:var(--lime)">90-100</div><div class="text-xs">Sangat Baik</div></div><div class="p-2 rounded-lg text-center" style="background:rgba(0,229,255,0.1);border:1px solid var(--cyan)"><div class="font-display font-bold text-sm" style="color:var(--cyan)">80-89</div><div class="text-xs">Baik</div></div><div class="p-2 rounded-lg text-center" style="background:rgba(255,215,0,0.1);border:1px solid var(--gold)"><div class="font-display font-bold text-sm" style="color:var(--gold)">70-79</div><div class="text-xs">Cukup</div></div><div class="p-2 rounded-lg text-center" style="background:rgba(255,45,117,0.1);border:1px solid var(--pink)"><div class="font-display font-bold text-sm" style="color:var(--pink)">&lt;70</div><div class="text-xs">Bimbingan</div></div></div></div>
+    <div class="glass p-4 sm:p-6 mb-5"><h3 class="font-display font-bold text-base sm:text-lg mb-3">📋 RUBRIK PENILAIAN</h3><div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Aspek</th><th>4 - Sangat Baik</th><th>3 - Baik</th><th>2 - Cukup</th><th>1 - Bimbingan</th></tr></thead><tbody><tr><td><strong>Dekomposisi</strong></td><td>Lengkap, logis & sistematis</td><td>Cukup tepat</td><td>Ada yang terlewat</td><td>Belum mampu</td></tr><tr><td><strong>Pola</strong></td><td>Tepat & menjelaskan alasan</td><td>Sebagian besar tepat</td><td>Belum konsisten</td><td>Belum mampu</td></tr><tr><td><strong>Abstraksi</strong></td><td>Sangat tepat</td><td>Sebagian besar tepat</td><td>Kurang relevan</td><td>Belum mampu</td></tr><tr><td><strong>Algoritma</strong></td><td>Runtut & mudah diterapkan</td><td>Cukup runtut</td><td>Ada yang kurang tepat</td><td>Belum sistematis</td></tr></tbody></table></div></div>
+    <div class="glass p-4 sm:p-6"><h3 class="font-display font-bold text-base sm:text-lg mb-3">🧮 KALKULATOR NILAI</h3><div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3"><div><label class="text-xs font-bold uppercase" style="color:var(--muted)">Dekomposisi (1-4)</label><input type="number" min="1" max="4" value="4" class="input-field mt-1" id="rDec" oninput="calcRubric()" /></div><div><label class="text-xs font-bold uppercase" style="color:var(--muted)">Pola (1-4)</label><input type="number" min="1" max="4" value="4" class="input-field mt-1" id="rPat" oninput="calcRubric()" /></div><div><label class="text-xs font-bold uppercase" style="color:var(--muted)">Abstraksi (1-4)</label><input type="number" min="1" max="4" value="4" class="input-field mt-1" id="rAbs" oninput="calcRubric()" /></div><div><label class="text-xs font-bold uppercase" style="color:var(--muted)">Algoritma (1-4)</label><input type="number" min="1" max="4" value="4" class="input-field mt-1" id="rAlg" oninput="calcRubric()" /></div></div><div class="grid grid-cols-3 gap-3 mt-3"><div class="p-3 rounded-xl text-center" style="background:var(--surface-2)"><div class="text-xs uppercase" style="color:var(--muted)">Total</div><div class="font-display text-2xl font-black" id="rTotal" style="color:var(--cyan)">16</div></div><div class="p-3 rounded-xl text-center" style="background:var(--surface-2)"><div class="text-xs uppercase" style="color:var(--muted)">Nilai</div><div class="font-display text-2xl font-black" id="rFinal" style="color:var(--lime)">100</div></div><div class="p-3 rounded-xl text-center" style="background:var(--surface-2)"><div class="text-xs uppercase" style="color:var(--muted)">Predikat</div><div class="font-display text-sm font-black" id="rPred" style="color:var(--gold)">SANGAT BAIK</div></div></div></div>
+  </div>
+</section>
+
+<!-- ===== VIEW: PRESTASI ===== -->
+<section id="view-prestasi" class="view hidden">
+  <div class="max-w-6xl mx-auto px-3 sm:px-4 py-6">
+    <div class="glass p-4 sm:p-6 mb-5"><h2 class="font-display text-xl sm:text-2xl font-black mb-2">🏆 HALL OF FAME</h2><p style="color:var(--muted)" class="text-xs sm:text-sm">Pencapaian dan badge!</p></div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-5" id="badgeGrid"></div>
+    <div class="glass p-4 sm:p-6"><h3 class="font-display font-bold text-base sm:text-lg mb-3">📈 STATISTIK</h3><div class="grid grid-cols-3 gap-3"><div class="p-3 rounded-xl text-center" style="background:var(--surface-2)"><div class="text-xs uppercase" style="color:var(--muted)">XP</div><div class="font-display text-xl font-black" id="achXP" style="color:var(--cyan)">0</div></div><div class="p-3 rounded-xl text-center" style="background:var(--surface-2)"><div class="text-xs uppercase" style="color:var(--muted)">World</div><div class="font-display text-xl font-black" id="achWorld" style="color:var(--lime)">0</div></div><div class="p-3 rounded-xl text-center" style="background:var(--surface-2)"><div class="text-xs uppercase" style="color:var(--muted)">Badge</div><div class="font-display text-xl font-black" id="achBadge" style="color:var(--gold)">0</div></div></div></div>
+    <div class="glass p-4 sm:p-6 mt-5"><h3 class="font-display font-bold text-base sm:text-lg mb-3">🎚️ LEVEL</h3><div class="space-y-2" id="levelList"></div></div>
+  </div>
+</section>
+
+<!-- ===== VIEW: GURU ===== -->
+<section id="view-guru" class="view hidden">
+  <div id="adminLoginPage" class="admin-login-page">
+    <div class="grid-bg"></div>
+    <div class="admin-login-card">
+      <div class="admin-login-icon"><i class="fa-solid fa-user-shield"></i></div>
+      <h2 class="admin-login-title">LOGIN ADMIN</h2>
+      <p class="admin-login-sub">Pantau data siswa yang bermain</p>
+      <div class="admin-input-group"><label class="admin-input-label">Username</label><div class="admin-input-wrap"><i class="fa-solid fa-user"></i><input type="text" class="input-field" id="adminUser" placeholder="Username" value="admin" /></div></div>
+      <div class="admin-input-group"><label class="admin-input-label">Password</label><div class="admin-input-wrap"><i class="fa-solid fa-lock"></i><input type="password" class="input-field" id="adminPass" placeholder="Password" onkeydown="if(event.key==='Enter') adminLogin()" /></div></div>
+      <button class="btn-neon" onclick="adminLogin()" style="width:100%"><i class="fa-solid fa-right-to-bracket mr-2"></i>MASUK</button>
+      <div class="admin-demo-box">Demo → User: <strong>admin</strong> | Pass: <strong>admin123</strong></div>
+      <div class="admin-back-link" onclick="go('landing')"><i class="fa-solid fa-arrow-left"></i> Kembali ke Beranda</div>
+    </div>
+  </div>
+  <div id="adminDashboard" class="hidden max-w-7xl mx-auto px-3 sm:px-4 py-6">
+    <div class="glass p-4 sm:p-6 mb-5">
+      <div class="flex items-center justify-between flex-wrap gap-3">
+        <div><h2 class="font-display text-lg sm:text-2xl font-black mb-1">👨‍🏫 DASHBOARD GURU</h2><p style="color:var(--muted)" class="text-xs sm:text-sm">Pantau data siswa</p></div>
+        <div class="flex gap-2 flex-wrap"><button class="btn-ghost" onclick="exportCSV()"><i class="fa-solid fa-file-csv mr-1"></i>CSV</button><button class="btn-ghost" onclick="printTeacher()"><i class="fa-solid fa-print mr-1"></i>Cetak</button><button class="btn-ghost" onclick="adminLogout()"><i class="fa-solid fa-right-from-bracket mr-1"></i>Logout</button></div>
+      </div>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5"><div class="glass p-3 text-center"><div class="text-xs uppercase" style="color:var(--muted)">Siswa</div><div class="font-display text-xl font-black" id="tTotal" style="color:var(--cyan)">0</div></div><div class="glass p-3 text-center"><div class="text-xs uppercase" style="color:var(--muted)">Rata² XP</div><div class="font-display text-xl font-black" id="tAvgXP" style="color:var(--lime)">0</div></div><div class="glass p-3 text-center"><div class="text-xs uppercase" style="color:var(--muted)">Rata² Nilai</div><div class="font-display text-xl font-black" id="tAvgNilai" style="color:var(--gold)">0</div></div><div class="glass p-3 text-center"><div class="text-xs uppercase" style="color:var(--muted)">Master</div><div class="font-display text-xl font-black" id="tMaster" style="color:var(--purple)">0</div></div></div>
+    <div class="glass p-4 sm:p-6">
+      <div class="flex items-center justify-between flex-wrap gap-3 mb-3">
+        <h3 class="font-display font-bold text-sm sm:text-base">📋 DATA SISWA</h3>
+        <div class="flex gap-2 flex-wrap"><input type="text" class="input-field" id="searchStudent" placeholder="Cari..." oninput="renderStudents()" style="width:120px" /><select class="input-field" id="filterClass" onchange="renderStudents()" style="width:100px"><option value="">Semua</option><option>VII A</option><option>VII B</option><option>VII C</option><option>VII D</option><option>VII E</option><option>VII F</option></select><button class="btn-neon" onclick="addStudentModal()"><i class="fa-solid fa-plus mr-1"></i>Tambah</button><button class="btn-ghost" onclick="resetData()"><i class="fa-solid fa-rotate-left mr-1"></i>Reset</button></div>
+      </div>
+      <div class="overflow-x-auto" id="print-area-teacher"><table class="data-table"><thead><tr><th>No</th><th>Nama</th><th>Kelas</th><th>Kelompok</th><th>XP</th><th>LKPD</th><th>Akhir</th><th>Predikat</th><th>Badge</th><th>Aksi</th></tr></thead><tbody id="studentTable"></tbody></table></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div id="toast-container"></div>
+<div id="modal-root"></div>
+<canvas id="confetti"></canvas>
+
+<script type="module">
+import * as THREE from 'three';
+
+const STATE = {
+  view: 'landing',
+  player: { name: '', class: '', group: '', xp: 0, score: 0, stars: 0, energy: 100, level: 1, streak: 0, completedWorlds: [], worldStars: {1:0,2:0,3:0,4:0,5:0}, badges: [] },
+  settings: { sound: true, dark: true, music: false },
+  admin: { loggedIn: false, user: 'admin', pass: 'admin123' },
+  students: [],
+  currentWorld: 0,
+  dec: { placed: [], correct: [] },
+  pat: { level: 0, answered: false, timer: null, timeLeft: 30, correctCount: 0 },
+  abs: { placed: { important: [], notImportant: [] } },
+  alg: { mission: 0, ordered: [] }
+};
+
+const BADGES = [
+  { id: 'b1', name: 'Problem Solver Pemula', icon: '🏅', desc: 'Selesaikan World 1' },
+  { id: 'b2', name: 'Pattern Hunter', icon: '🥈', desc: 'Selesaikan World 2' },
+  { id: 'b3', name: 'Abstract Master', icon: '🥇', desc: 'Selesaikan World 3' },
+  { id: 'b4', name: 'Algorithm Architect', icon: '🏆', desc: 'Selesaikan World 4' },
+  { id: 'b5', name: 'CT Master', icon: '👑', desc: 'Selesaikan Final' }
+];
+const LEVELS = [
+  { level: 1, name: 'Problem Explorer', minXP: 0 }, { level: 2, name: 'Decomposition Hero', minXP: 150 },
+  { level: 3, name: 'Pattern Hunter', minXP: 350 }, { level: 4, name: 'Abstraction Expert', minXP: 550 },
+  { level: 5, name: 'Algorithm Designer', minXP: 750 }, { level: 6, name: 'Problem Solver', minXP: 900 },
+  { level: 7, name: 'CT Master', minXP: 1000 }
+];
+const PATTERNS = [
+  { title: 'POLA WARNA', seq: ['🔵','🔴','🔵','🔴','🔵'], answer: '🔴', options: ['🔵','🔴','🟢','🟡'], explain: 'Biru-merah bergantian. Berikutnya: merah.' },
+  { title: 'POLA BENTUK', seq: ['🔺','🔻','🔺','🔻','🔺'], answer: '🔻', options: ['🔺','🔻','🔶','🔷'], explain: 'Naik-turun bergantian. Berikutnya: turun.' },
+  { title: 'POLA ANGKA', seq: ['2','4','6','8','10'], answer: '12', options: ['11','12','13','14'], explain: 'Bertambah 2. 10+2=12.' },
+  { title: 'POLA GANDA', seq: ['1','2','4','8','16'], answer: '32', options: ['24','28','32','36'], explain: 'Dikalikan 2. 16×2=32.' },
+  { title: 'POLA FIBONACCI', seq: ['1','1','2','3','5'], answer: '8', options: ['6','7','8','9'], explain: 'Fibonacci: 3+5=8.' },
+  { title: 'POLA WAKTU', seq: ['🌙','☀️','🌙','☀️','🌙'], answer: '☀️', options: ['🌙','☀️','⭐','🌧️'], explain: 'Malam-siang bergantian.' }
+];
+const ALG_MISSIONS = [
+  { title: 'Membuat Akun Email', steps: ['Buka website email','Klik daftar','Isi nama','Buat alamat email','Buat password','Verifikasi','Akun selesai'] },
+  { title: 'Mengirim Email', steps: ['Buka aplikasi email','Klik Compose','Isi alamat penerima','Tulis subjek','Tulis isi email','Klik Kirim','Email terkirim'] },
+  { title: 'Membuat Teh', steps: ['Siapkan gelas dan teh','Didihkan air','Tuang air ke gelas','Masukkan kantong teh','Tambahkan gula','Aduk rata','Teh siap'] },
+  { title: 'Menyalakan Komputer', steps: ['Pastikan kabel terhubung','Tekan tombol power','Tunggu loading','Masukkan password','Tekan Enter','Tunggu desktop','Siap digunakan'] },
+  { title: 'Kumpul Tugas Classroom', steps: ['Buka Google Classroom','Pilih kelas','Klik tab tugas','Pilih tugas','Klik Add','Unggah file','Klik Submit'] },
+  { title: 'Komputer Macet', steps: ['Identifikasi masalah','Cek kabel listrik','Cek koneksi internet','Restart komputer','Jalankan antivirus','Update sistem','Kembali normal'] }
+];
+const ABS_ITEMS = [
+  { id: 'a1', text: 'Jalan menuju perpustakaan', important: true }, { id: 'a2', text: 'Warna tas siswa', important: false },
+  { id: 'a3', text: 'Jarak sekolah ke perpustakaan', important: true }, { id: 'a4', text: 'Nama penjaga sekolah', important: false },
+  { id: 'a5', text: 'Jumlah pohon di jalan', important: false }, { id: 'a6', text: 'Nama gedung perpustakaan', important: true },
+  { id: 'a7', text: 'Warna sepatu siswa', important: false }, { id: 'a8', text: 'Kondisi jalan', important: true }
+];
+const DEC_ITEMS = [
+  { id: 'd1', text: 'Menentukan tempat', correct: true }, { id: 'd2', text: 'Menentukan waktu', correct: true },
+  { id: 'd3', text: 'Menentukan peserta', correct: true }, { id: 'd4', text: 'Membuat susunan acara', correct: true },
+  { id: 'd5', text: 'Menyiapkan perlengkapan', correct: true }, { id: 'd6', text: 'Membagi tugas', correct: true },
+  { id: 'd7', text: 'Menyiapkan konsumsi', correct: true }, { id: 'd8', text: 'Melakukan evaluasi', correct: true },
+  { id: 'd9', text: 'Memilih warna baju panitia', correct: false }, { id: 'd10', text: 'Menentukan merek sepatu MC', correct: false },
+  { id: 'd11', text: 'Memilih nama maskot pribadi', correct: false }
+];
+
+const STORAGE_KEY = 'mission_breakdown_v3';
+function saveState() {
+  try {
+    const data = { player: STATE.player, settings: STATE.settings, students: STATE.students, lkpd: getLKPDData(), admin: STATE.admin };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch(e) {}
+}
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const data = JSON.parse(raw);
+      Object.assign(STATE.player, data.player || {});
+      Object.assign(STATE.settings, data.settings || {});
+      STATE.students = data.students || [];
+      if (data.admin) Object.assign(STATE.admin, data.admin);
+      if (data.lkpd) setTimeout(() => setLKPDData(data.lkpd), 100);
+    }
+  } catch(e) {}
+}
+function getLKPDData() {
+  const ids = ['lkpdName','lkpdClass','lkpdGroup','lkpdDate','lkpd_p1','lkpd_p2','lkpd_p3','lkpd_p4','lkpd_a1','lkpd_a2','lkpd_f1','lkpd_f2','lkpd_f3','lkpd_f4','lkpd_s1','lkpd_s2','lkpd_s3','lkpd_s4','lkpd_s5','lkpd_s6','lkpd_s7'];
+  for (let i=1;i<=5;i++) for (let j=1;j<=3;j++) ids.push(`lkpd_t${i}_${j}`);
+  const out = {};
+  ids.forEach(id => { const el = document.getElementById(id); if (el) out[id] = el.value; });
+  return out;
+}
+function setLKPDData(data) { Object.keys(data).forEach(id => { const el = document.getElementById(id); if (el) el.value = data[id]; }); }
+
+// ===== AUTO-SYNC STUDENT DATA =====
+function syncStudent() {
+  if (!STATE.player.name) return;
+  const nilai = calculateLKPDNilai();
+  const idx = STATE.students.findIndex(s => s.name === STATE.player.name && s.class === STATE.player.class);
+  const data = {
+    name: STATE.player.name, class: STATE.player.class, group: STATE.player.group,
+    xp: STATE.player.xp, score: STATE.player.score, lkpd: nilai,
+    nilaiAkhir: Math.round((STATE.player.xp / 1000 * 50 + nilai / 2)),
+    badge: STATE.player.badges.length, isMaster: STATE.player.completedWorlds.includes(5),
+    completedWorlds: STATE.player.completedWorlds.length, level: STATE.player.level,
+    timestamp: Date.now()
+  };
+  if (idx >= 0) STATE.students[idx] = data;
+  else STATE.students.push(data);
+  saveState();
+  // If admin is viewing dashboard, refresh
+  if (STATE.view === 'guru' && STATE.admin.loggedIn) renderStudents();
+}
+function calculateLKPDNilai() {
+  const t = getLKPDData();
+  let filled = 0, total = 0;
+  Object.keys(t).forEach(k => { total++; if (t[k] && t[k].trim()) filled++; });
+  return total > 0 ? Math.round(filled / total * 100) : 0;
+}
+
+// ===== NAVIGATION =====
+window.go = function(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+  const el = document.getElementById('view-' + view);
+  if (el) el.classList.remove('hidden');
+  document.querySelectorAll('[data-nav]').forEach(n => n.classList.toggle('active', n.dataset.nav === view));
+  STATE.view = view;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (view === 'dashboard') updateDashboard();
+  if (view === 'prestasi') updatePrestasi();
+  if (view === 'guru') {
+    if (STATE.admin.loggedIn) {
+      document.getElementById('adminLoginPage').classList.add('hidden');
+      document.getElementById('adminDashboard').classList.remove('hidden');
+      renderStudents();
+    } else {
+      document.getElementById('adminLoginPage').classList.remove('hidden');
+      document.getElementById('adminDashboard').classList.add('hidden');
+    }
+  }
+  if (view === 'penilaian') calcRubric();
+};
+
+// ===== AUDIO: SOUND EFFECTS =====
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function playSound(type) {
+  if (!STATE.settings.sound) return;
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    const freqs = { success: [523,659,784], error: [311,233], click: [440], level: [523,659,784,1046] };
+    const f = freqs[type] || freqs.click;
+    osc.frequency.setValueAtTime(f[0], ctx.currentTime);
+    if (f.length > 1) for (let i = 1; i < f.length; i++) osc.frequency.setValueAtTime(f[i], ctx.currentTime + i * 0.1);
+    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.4);
+  } catch(e) {}
+}
+window.toggleSound = function() {
+  STATE.settings.sound = !STATE.settings.sound;
+  document.getElementById('soundIcon').className = STATE.settings.sound ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
+  saveState();
+};
+
+// ===== AUDIO: BACKGROUND MUSIC =====
+const Music = {
+  ctx: null, playing: false, masterGain: null, scheduler: null,
+  notes: [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99],
+  bassNotes: [130.81, 146.83, 164.81, 196.00, 220.00],
+  
+  init() {
+    if (!this.ctx) {
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      this.masterGain = this.ctx.createGain();
+      this.masterGain.gain.value = 0.06;
+      this.masterGain.connect(this.ctx.destination);
+    }
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+  },
+  
+  start() {
+    this.init();
+    this.playing = true;
+    this.scheduleLoop();
+  },
+  
+  stop() {
+    this.playing = false;
+    if (this.scheduler) clearTimeout(this.scheduler);
+    // Fade out
+    if (this.masterGain) {
+      const now = this.ctx.currentTime;
+      this.masterGain.gain.cancelScheduledValues(now);
+      this.masterGain.gain.setValueAtTime(this.masterGain.gain.value, now);
+      this.masterGain.gain.linearRampToValueAtTime(0, now + 0.5);
+      setTimeout(() => { if (this.masterGain) this.masterGain.gain.value = 0.06; }, 600);
+    }
+  },
+  
+  playNote(freq, duration, time, type = 'sine', vol = 0.3) {
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0, time);
+    gain.gain.linearRampToValueAtTime(vol, time + 0.05);
+    gain.gain.linearRampToValueAtTime(vol * 0.7, time + duration * 0.5);
+    gain.gain.linearRampToValueAtTime(0, time + duration);
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(time);
+    osc.stop(time + duration);
+  },
+  
+  scheduleLoop() {
+    if (!this.playing) return;
+    const now = this.ctx.currentTime;
+    const beatLen = 0.5; // 120 BPM
+    const barLen = beatLen * 4;
+    
+    // Schedule 2 bars ahead
+    for (let bar = 0; bar < 2; bar++) {
+      const barStart = now + bar * barLen;
+      
+      // Bass note (root of chord)
+      const bassIdx = Math.floor(Math.random() * this.bassNotes.length);
+      this.playNote(this.bassNotes[bassIdx], barLen * 3.5, barStart, 'triangle', 0.25);
+      
+      // Melody notes (pentatonic, pleasant)
+      for (let beat = 0; beat < 4; beat++) {
+        if (Math.random() > 0.3) {
+          const noteIdx = Math.floor(Math.random() * this.notes.length);
+          const freq = this.notes[noteIdx];
+          const time = barStart + beat * beatLen;
+          this.playNote(freq, beatLen * 0.8, time, 'sine', 0.15);
+        }
+      }
+      
+      // Harmony (chord pad)
+      if (Math.random() > 0.4) {
+        const root = this.notes[Math.floor(Math.random() * 4)];
+        this.playNote(root, barLen * 2, barStart + beatLen, 'sine', 0.08);
+        this.playNote(root * 1.25, barLen * 2, barStart + beatLen, 'sine', 0.08);
+      }
+    }
+    
+    // Schedule next batch
+    this.scheduler = setTimeout(() => this.scheduleLoop(), barLen * 2 * 1000 - 100);
+  }
+};
+
+window.toggleMusic = function() {
+  STATE.settings.music = !STATE.settings.music;
+  const btn = document.getElementById('musicBtn');
+  if (STATE.settings.music) {
+    Music.start();
+    btn.classList.add('active');
+    btn.innerHTML = '<i class="fa-solid fa-music"></i>';
+    toast('🎵 Musik diaktifkan!', 'success', 2000);
+  } else {
+    Music.stop();
+    btn.classList.remove('active');
+    btn.innerHTML = '<i class="fa-solid fa-music"></i>';
+    toast('🔇 Musik dimatikan', 'info', 2000);
+  }
+  saveState();
+};
+
+window.toggleDark = function() {
+  STATE.settings.dark = !STATE.settings.dark;
+  document.documentElement.classList.toggle('light', !STATE.settings.dark);
+  document.documentElement.classList.toggle('dark', STATE.settings.dark);
+  document.getElementById('darkIcon').className = STATE.settings.dark ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+  saveState();
+};
+
+function toast(msg, type = 'info', duration = 3000) {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  const icons = { success: 'circle-check', error: 'circle-xmark', info: 'circle-info', warning: 'triangle-exclamation' };
+  t.innerHTML = `<i class="fa-solid fa-${icons[type] || 'circle-info'}"></i><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), duration + 400);
+}
+
+// ===== XP SYSTEM =====
+function addXP(amount, sourceEl) {
+  STATE.player.xp = Math.max(0, Math.min(1000, STATE.player.xp + amount));
+  STATE.player.score = Math.max(0, STATE.player.score + amount);
+  if (sourceEl) {
+    const rect = sourceEl.getBoundingClientRect();
+    const pop = document.createElement('div');
+    pop.className = 'xp-pop';
+    pop.textContent = (amount > 0 ? '+' : '') + amount + ' XP';
+    pop.style.left = (rect.left + rect.width/2) + 'px';
+    pop.style.top = rect.top + 'px';
+    document.body.appendChild(pop);
+    setTimeout(() => pop.remove(), 1500);
+  }
+  for (let i = LEVELS.length - 1; i >= 0; i--) {
+    if (STATE.player.xp >= LEVELS[i].minXP) {
+      if (STATE.player.level < LEVELS[i].level) {
+        STATE.player.level = LEVELS[i].level;
+        toast(`🎉 Level Up! Level ${LEVELS[i].level}: ${LEVELS[i].name}`, 'success', 4000);
+        playSound('level');
+      } else STATE.player.level = LEVELS[i].level;
+      break;
+    }
+  }
+  updatePlayerUI();
+  saveState();
+  syncStudent(); // Auto-sync to admin
+}
+function updatePlayerUI() {
+  document.getElementById('navPlayerName').textContent = STATE.player.name || 'Tamu';
+  document.getElementById('navXP').textContent = STATE.player.xp + ' XP';
+}
+function updateDashboard() {
+  const inpName = document.getElementById('inpName');
+  const inpClass = document.getElementById('inpClass');
+  const inpGroup = document.getElementById('inpGroup');
+  if (inpName) {
+    inpName.value = STATE.player.name;
+    inpName.oninput = e => { STATE.player.name = e.target.value; updatePlayerUI(); saveState(); syncStudent(); };
+    inpClass.value = STATE.player.class;
+    inpClass.onchange = e => { STATE.player.class = e.target.value; saveState(); syncStudent(); };
+    inpGroup.value = STATE.player.group;
+    inpGroup.oninput = e => { STATE.player.group = e.target.value; saveState(); syncStudent(); };
+  }
+  document.getElementById('statXP').textContent = STATE.player.xp;
+  document.getElementById('statScore').textContent = STATE.player.score;
+  document.getElementById('xpBar').style.width = (STATE.player.xp / 1000 * 100) + '%';
+  document.getElementById('badgeLevel').innerHTML = `<i class="fa-solid fa-shield"></i> Level ${STATE.player.level}`;
+  document.getElementById('streakText').textContent = STATE.player.streak;
+  const totalStars = Object.values(STATE.player.worldStars).reduce((a,b) => a+b, 0);
+  document.getElementById('starCount').textContent = totalStars;
+  document.getElementById('star1').classList.toggle('filled', totalStars >= 1);
+  document.getElementById('star2').classList.toggle('filled', totalStars >= 2);
+  document.getElementById('star3').classList.toggle('filled', totalStars >= 3);
+  const eBar = document.getElementById('energyBar');
+  eBar.innerHTML = '';
+  const filled = Math.round(STATE.player.energy / 10);
+  for (let i = 0; i < 10; i++) { const c = document.createElement('div'); c.className = 'energy-cell' + (i < filled ? ' full' : ''); eBar.appendChild(c); }
+  document.getElementById('energyVal').textContent = STATE.player.energy;
+  for (let i = 1; i <= 5; i++) {
+    const card = document.getElementById('wc' + i);
+    if (!card) continue;
+    const unlocked = i === 1 || STATE.player.completedWorlds.includes(i - 1);
+    card.classList.toggle('locked', !unlocked);
+    const stars = STATE.player.worldStars[i] || 0;
+    const starEl = document.getElementById(`w${i}stars`);
+    if (starEl) starEl.textContent = stars;
+    const statusEl = document.getElementById(`w${i}status`);
+    if (statusEl) statusEl.innerHTML = unlocked ? (STATE.player.completedWorlds.includes(i) ? '<span style="color:var(--lime)">SELESAI ✓</span>' : 'TERBUKA') : '<i class="fa-solid fa-lock"></i> TERKUNCI';
+  }
+  document.getElementById('badgeCount').textContent = STATE.player.badges.length;
+}
+
+window.openWorld = function(num) {
+  const unlocked = num === 1 || STATE.player.completedWorlds.includes(num - 1);
+  if (!unlocked) { toast('World terkunci! Selesaikan world sebelumnya.', 'warning'); return; }
+  if (!STATE.player.name) { toast('Isi nama dulu di dashboard!', 'warning'); return; }
+  STATE.currentWorld = num;
+  if (num === 1) { initDecomposition(); go('world1'); }
+  else if (num === 2) { initPattern(); go('world2'); }
+  else if (num === 3) { initAbstraction(); go('world3'); }
+  else if (num === 4) { initAlgorithm(); go('world4'); }
+  else if (num === 5) { go('world5'); }
+};
+
+// ===== DRAG AND DROP =====
+function setupDragItem(item) {
+  item.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    item.classList.add('dragging');
+    const rect = item.getBoundingClientRect();
+    const ghost = item.cloneNode(true);
+    ghost.style.position = 'fixed';
+    ghost.style.left = rect.left + 'px';
+    ghost.style.top = rect.top + 'px';
+    ghost.style.width = rect.width + 'px';
+    ghost.style.zIndex = '10000';
+    ghost.style.pointerEvents = 'none';
+    ghost.style.opacity = '0.9';
+    ghost.style.transform = 'rotate(3deg) scale(1.05)';
+    document.body.appendChild(ghost);
+    const dragging = { ghost, offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top, source: item };
+    function move(ev) {
+      if (!dragging) return;
+      dragging.ghost.style.left = (ev.clientX - dragging.offsetX) + 'px';
+      dragging.ghost.style.top = (ev.clientY - dragging.offsetY) + 'px';
+      document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('over'));
+      const els = document.elementsFromPoint(ev.clientX, ev.clientY);
+      const zone = els.find(el => el.classList && el.classList.contains('drop-zone'));
+      if (zone) zone.classList.add('over');
+    }
+    function up(ev) {
+      if (!dragging) return;
+      const els = document.elementsFromPoint(ev.clientX, ev.clientY);
+      const zone = els.find(el => el.classList && el.classList.contains('drop-zone'));
+      if (zone && zone !== dragging.source.parentElement) { const cb = zone._dropCallback; if (cb) cb(dragging.source); }
+      dragging.ghost.remove();
+      dragging.source.classList.remove('dragging');
+      document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('over'));
+      dragging = null;
+      document.removeEventListener('pointermove', move);
+      document.removeEventListener('pointerup', up);
+    }
+    document.addEventListener('pointermove', move);
+    document.addEventListener('pointerup', up);
+  });
+}
+function setupDropZone(zone, callback) { zone._dropCallback = callback; }
+
+// ===== WORLD 1: DEKOMPOSISI =====
+function initDecomposition() {
+  STATE.dec = { placed: [], correct: [] };
+  const shuffled = [...DEC_ITEMS].sort(() => Math.random() - 0.5);
+  document.getElementById('decItems').innerHTML = shuffled.map(item => `<div class="drag-item" data-id="${item.id}" data-correct="${item.correct}"><i class="fa-solid fa-grip-vertical" style="color:var(--muted)"></i> ${item.text}</div>`).join('');
+  const drop = document.getElementById('decDrop');
+  drop.innerHTML = '<div class="text-center text-xs py-4" style="color:var(--muted)">Drop kartu di sini...</div>';
+  document.querySelectorAll('#decItems .drag-item').forEach(setupDragItem);
+  setupDropZone(drop, (item) => {
+    drop.querySelectorAll('.text-center').forEach(el => el.remove());
+    const placed = document.createElement('div');
+    placed.className = 'drag-item placed mb-2';
+    placed.dataset.id = item.dataset.id;
+    placed.innerHTML = `<i class="fa-solid fa-check" style="color:var(--lime)"></i> ${item.textContent.trim()} <button onclick="removeDecItem('${item.dataset.id}')" class="ml-auto text-xs" style="color:var(--pink)"><i class="fa-solid fa-xmark"></i></button>`;
+    drop.appendChild(placed);
+    item.style.display = 'none';
+    STATE.dec.placed.push({ id: item.dataset.id, correct: item.dataset.correct === 'true', text: item.textContent.trim() });
+  });
+}
+window.removeDecItem = function(id) {
+  STATE.dec.placed = STATE.dec.placed.filter(p => p.id !== id);
+  const item = document.querySelector(`#decItems [data-id="${id}"]`);
+  if (item) item.style.display = '';
+  const placed = document.querySelector(`#decDrop [data-id="${id}"]`);
+  if (placed) placed.remove();
+  if (STATE.dec.placed.length === 0) document.getElementById('decDrop').innerHTML = '<div class="text-center text-xs py-4" style="color:var(--muted)">Drop kartu di sini...</div>';
+};
+window.checkDecomposition = function() {
+  const correct = STATE.dec.placed.filter(p => p.correct).length;
+  const wrong = STATE.dec.placed.filter(p => !p.correct).length;
+  const total = DEC_ITEMS.filter(i => i.correct).length;
+  document.getElementById('decCorrect').textContent = correct;
+  if (correct === total && wrong === 0) { addXP(200); STATE.player.streak++; completeWorld(1, 3); toast(`Excellent! +200 XP`, 'success', 4000); }
+  else if (correct >= 5) { addXP(50); completeWorld(1, 2); toast(`Cukup baik! +50 XP`, 'warning', 4000); }
+  else { addXP(-20); STATE.player.energy = Math.max(0, STATE.player.energy - 10); toast('Coba lagi! -20 XP', 'error', 4000); }
+  saveState();
+};
+
+// ===== WORLD 2: POLA =====
+function initPattern() { STATE.pat = { level: 0, answered: false, timer: null, timeLeft: 30, correctCount: 0 }; loadPatternLevel(); }
+function loadPatternLevel() {
+  if (STATE.pat.level >= PATTERNS.length) {
+    const stars = STATE.pat.correctCount >= 5 ? 3 : STATE.pat.correctCount >= 3 ? 2 : 1;
+    addXP(100 + (STATE.pat.correctCount >= 5 ? 100 : 0));
+    completeWorld(2, stars);
+    toast(`Selesai! ${STATE.pat.correctCount}/${PATTERNS.length} benar`, 'success', 4000);
+    return;
+  }
+  const p = PATTERNS[STATE.pat.level];
+  document.getElementById('patLevel').textContent = STATE.pat.level + 1;
+  document.getElementById('patTitle').textContent = p.title;
+  document.getElementById('patSequence').innerHTML = p.seq.map(s => `<div class="pattern-item">${s}</div>`).join('') + '<div class="pattern-item question">?</div>';
+  document.getElementById('patOptions').innerHTML = p.options.map(o => `<div class="pattern-option" onclick="answerPattern('${o}')" data-val="${o}">${o}</div>`).join('');
+  document.getElementById('patExplain').style.display = 'none';
+  STATE.pat.answered = false;
+  if (STATE.pat.timer) clearInterval(STATE.pat.timer);
+  STATE.pat.timeLeft = 30;
+  updatePatTimer();
+  STATE.pat.timer = setInterval(() => { STATE.pat.timeLeft--; updatePatTimer(); if (STATE.pat.timeLeft <= 0) { clearInterval(STATE.pat.timer); answerPattern(null); } }, 1000);
+}
+function updatePatTimer() {
+  const el = document.getElementById('patTimer');
+  if (!el) return;
+  const m = String(Math.floor(STATE.pat.timeLeft / 60)).padStart(2,'0');
+  const s = String(STATE.pat.timeLeft % 60).padStart(2,'0');
+  el.textContent = `${m}:${s}`;
+  el.className = 'timer-display' + (STATE.pat.timeLeft <= 5 ? ' danger' : STATE.pat.timeLeft <= 15 ? ' warning' : '');
+}
+window.answerPattern = function(val) {
+  if (STATE.pat.answered) return;
+  STATE.pat.answered = true;
+  if (STATE.pat.timer) clearInterval(STATE.pat.timer);
+  const p = PATTERNS[STATE.pat.level];
+  document.querySelectorAll('#patOptions .pattern-option').forEach(o => {
+    if (o.dataset.val === p.answer) o.classList.add('correct');
+    else if (o.dataset.val === val) o.classList.add('wrong');
+    o.style.pointerEvents = 'none';
+  });
+  const correct = val === p.answer;
+  if (correct) { STATE.pat.correctCount++; addXP(100 + (STATE.pat.timeLeft >= 20 ? 50 : 0)); playSound('success'); }
+  else { addXP(-20); STATE.player.energy = Math.max(0, STATE.player.energy - 10); playSound('error'); }
+  document.getElementById('patExplain').style.display = 'block';
+  document.getElementById('patExplainText').textContent = p.explain + (correct ? '' : ` Jawaban: ${p.answer}`);
+  setTimeout(() => { STATE.pat.level++; loadPatternLevel(); }, 3000);
+};
+
+// ===== WORLD 3: ABSTRAKSI =====
+function initAbstraction() {
+  STATE.abs = { placed: { important: [], notImportant: [] } };
+  const shuffled = [...ABS_ITEMS].sort(() => Math.random() - 0.5);
+  document.getElementById('absItems').innerHTML = shuffled.map(item => `<div class="drag-item" data-id="${item.id}" data-important="${item.important}"><i class="fa-solid fa-grip-vertical" style="color:var(--muted)"></i> ${item.text}</div>`).join('');
+  document.getElementById('absDropImportant').innerHTML = '';
+  document.getElementById('absDropNotImportant').innerHTML = '';
+  document.querySelectorAll('#absItems .drag-item').forEach(setupDragItem);
+  setupDropZone(document.getElementById('absDropImportant'), (item) => {
+    if (document.querySelector(`#absDropImportant [data-id="${item.dataset.id}"]`)) return;
+    placeAbsItem(item, 'important');
+  });
+  setupDropZone(document.getElementById('absDropNotImportant'), (item) => {
+    if (document.querySelector(`#absDropNotImportant [data-id="${item.dataset.id}"]`)) return;
+    placeAbsItem(item, 'notImportant');
+  });
+}
+function placeAbsItem(item, zone) {
+  const target = document.getElementById(zone === 'important' ? 'absDropImportant' : 'absDropNotImportant');
+  const placed = document.createElement('div');
+  placed.className = 'drag-item placed mb-2';
+  placed.dataset.id = item.dataset.id;
+  placed.dataset.important = item.dataset.important;
+  placed.innerHTML = `<i class="fa-solid fa-${zone === 'important' ? 'check' : 'xmark'}" style="color:${zone === 'important' ? 'var(--lime)' : 'var(--pink)'}"></i> ${item.textContent.trim()} <button onclick="removeAbsItem('${item.dataset.id}')" class="ml-auto text-xs" style="color:var(--pink)"><i class="fa-solid fa-rotate-left"></i></button>`;
+  target.appendChild(placed);
+  item.style.display = 'none';
+  STATE.abs.placed[zone].push({ id: item.dataset.id, important: item.dataset.important === 'true', text: item.textContent.trim() });
+}
+window.removeAbsItem = function(id) {
+  ['important','notImportant'].forEach(z => {
+    STATE.abs.placed[z] = STATE.abs.placed[z].filter(p => p.id !== id);
+    const el = document.querySelector(`#${z === 'important' ? 'absDropImportant' : 'absDropNotImportant'} [data-id="${id}"]`);
+    if (el) el.remove();
+  });
+  const item = document.querySelector(`#absItems [data-id="${id}"]`);
+  if (item) item.style.display = '';
+};
+window.checkAbstraction = function() {
+  let correct = 0; const total = ABS_ITEMS.length;
+  STATE.abs.placed.important.forEach(p => { if (p.important) correct++; });
+  STATE.abs.placed.notImportant.forEach(p => { if (!p.important) correct++; });
+  if (correct === total) { addXP(200); completeWorld(3, 3); toast(`Sempurna! +200 XP`, 'success', 4000); }
+  else if (correct >= 6) { addXP(75); completeWorld(3, 2); toast(`Cukup baik! +75 XP`, 'warning', 4000); }
+  else { addXP(-20); STATE.player.energy = Math.max(0, STATE.player.energy - 10); toast('Belum tepat! -20 XP', 'error', 4000); }
+  saveState();
+};
+
+// ===== WORLD 4: ALGORITMA =====
+function initAlgorithm() { STATE.alg = { mission: 0, ordered: [] }; renderAlgMissions(); loadAlgMission(); }
+function renderAlgMissions() {
+  document.getElementById('algMissions').innerHTML = ALG_MISSIONS.map((m, i) => `<button class="tab-btn ${i === 0 ? 'active' : ''}" onclick="selectAlgMission(${i})">${i+1}. ${m.title}</button>`).join('');
+}
+window.selectAlgMission = function(i) {
+  STATE.alg.mission = i;
+  document.querySelectorAll('#algMissions .tab-btn').forEach((b, idx) => b.classList.toggle('active', idx === i));
+  loadAlgMission();
+};
+function loadAlgMission() {
+  const m = ALG_MISSIONS[STATE.alg.mission];
+  document.getElementById('algTitle').textContent = m.title;
+  const shuffled = m.steps.map((s, i) => ({ text: s, originalIdx: i })).sort(() => Math.random() - 0.5);
+  document.getElementById('algShuffled').innerHTML = shuffled.map(s => `<div class="step-card" data-orig="${s.originalIdx}" data-text="${s.text}"><i class="fa-solid fa-grip-vertical" style="color:var(--muted)"></i> ${s.text}</div>`).join('');
+  document.getElementById('algOrdered').innerHTML = Array(m.steps.length).fill(0).map((_, i) => `<div class="step-list-slot" data-pos="${i}"><span class="step-number">${i+1}</span><span class="text-xs" style="color:var(--muted)">Drop di sini...</span></div>`).join('');
+  document.querySelectorAll('#algShuffled .step-card').forEach(setupDragItem);
+  document.querySelectorAll('#algOrdered .step-list-slot').forEach(slot => {
+    setupDropZone(slot, (item) => {
+      const existing = slot.querySelector('.step-card');
+      if (existing) { document.getElementById('algShuffled').appendChild(existing); existing.style.display = ''; }
+      slot.innerHTML = '';
+      slot.appendChild(item);
+      item.style.display = '';
+      item.classList.remove('placed');
+    });
+  });
+}
+window.checkAlgorithm = function() {
+  const m = ALG_MISSIONS[STATE.alg.mission];
+  const slots = document.querySelectorAll('#algOrdered .step-list-slot');
+  let correct = 0;
+  slots.forEach((slot, i) => {
+    const card = slot.querySelector('.step-card');
+    if (card && parseInt(card.dataset.orig) === i) { correct++; card.style.borderColor = 'var(--lime)'; }
+    else if (card) card.style.borderColor = 'var(--pink)';
+  });
+  if (correct === m.steps.length) {
+    addXP(100); playSound('success');
+    if (STATE.alg.mission < ALG_MISSIONS.length - 1) { toast(`Sempurna! +100 XP`, 'success', 3000); setTimeout(() => { STATE.alg.mission++; selectAlgMission(STATE.alg.mission); }, 1200); }
+    else { addXP(100); completeWorld(4, 3); toast(`Semua selesai! +200 XP`, 'success', 4000); }
+  } else {
+    addXP(-20); STATE.player.energy = Math.max(0, STATE.player.energy - 10);
+    toast(`${correct}/${m.steps.length} benar! -20 XP`, 'error', 4000); playSound('error');
+  }
+  saveState();
+};
+
+// ===== COMPLETE WORLD =====
+function completeWorld(num, stars) {
+  if (!STATE.player.completedWorlds.includes(num)) {
+    STATE.player.completedWorlds.push(num);
+    if (num <= 5) { const badge = BADGES[num - 1]; if (badge && !STATE.player.badges.includes(badge.id)) STATE.player.badges.push(badge.id); }
+    confetti(); showMissionComplete(num);
+  }
+  STATE.player.worldStars[num] = Math.max(STATE.player.worldStars[num] || 0, stars);
+  STATE.player.energy = Math.min(100, STATE.player.energy + 20);
+  saveState(); syncStudent();
+}
+function showMissionComplete(num) {
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `<div class="modal-content text-center"><div class="text-6xl mb-3">🎉</div><h2 class="font-display text-2xl font-black mb-2" style="color:var(--cyan)">MISSION COMPLETE!</h2><p style="color:var(--muted)" class="text-sm mb-4">World ${num} selesai!</p><div class="flex justify-center gap-2 mb-4">${[1,2,3].map(i => `<span class="star ${i <= (STATE.player.worldStars[num] || 0) ? 'filled' : ''}" style="font-size:40px">★</span>`).join('')}</div><div class="glass p-3 mb-4"><div class="text-xs" style="color:var(--muted)">Badge</div><div class="font-display font-bold text-base">${BADGES[num-1] ? BADGES[num-1].icon + ' ' + BADGES[num-1].name : '🏆'}</div></div><div class="flex gap-2 justify-center"><button class="btn-ghost" onclick="this.closest('.modal-overlay').remove(); go('dashboard')">Dashboard</button><button class="btn-neon" onclick="this.closest('.modal-overlay').remove(); ${num < 5 ? `openWorld(${num+1})` : "go('dashboard')"}">Lanjut →</button></div></div>`;
+  document.getElementById('modal-root').appendChild(modal);
+}
+
+window.submitFinal = function() {
+  const dec = document.getElementById('finalDec').value.trim();
+  const pat = document.getElementById('finalPat').value.trim();
+  const abs = document.getElementById('finalAbs').value.trim();
+  const alg = document.getElementById('finalAlg').value.trim();
+  if (!dec || !pat || !abs || !alg) { toast('Lengkapi semua tahap!', 'warning'); return; }
+  addXP(500); completeWorld(5, 3); syncStudent();
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `<div class="modal-content text-center" style="max-width:500px"><div class="text-6xl mb-3">🏆</div><h2 class="font-display text-3xl font-black mb-2" style="background:linear-gradient(135deg,var(--gold),var(--orange));-webkit-background-clip:text;background-clip:text;color:transparent">CONGRATULATIONS!</h2><p class="font-display text-base mb-4" style="color:var(--cyan)">MASTER PROBLEM SOLVER!</p><div class="grid grid-cols-2 gap-2 mb-4"><div class="glass p-3"><div class="text-xs" style="color:var(--muted)">Skor</div><div class="font-display text-xl font-black" style="color:var(--gold)">${STATE.player.score}</div></div><div class="glass p-3"><div class="text-xs" style="color:var(--muted)">XP</div><div class="font-display text-xl font-black" style="color:var(--cyan)">${STATE.player.xp}</div></div><div class="glass p-3"><div class="text-xs" style="color:var(--muted)">World</div><div class="font-display text-xl font-black" style="color:var(--lime)">${STATE.player.completedWorlds.length}/5</div></div><div class="glass p-3"><div class="text-xs" style="color:var(--muted)">Badge</div><div class="font-display text-xl font-black" style="color:var(--purple)">${STATE.player.badges.length}/5</div></div></div><div class="glass p-3 mb-4" style="background:linear-gradient(135deg,rgba(255,215,0,0.15),rgba(177,77,255,0.1))"><div class="text-xs" style="color:var(--muted)">BADGE TERTINGGI</div><div class="font-display font-black text-lg" style="color:var(--gold)">👑 CT MASTER</div></div><div class="flex gap-2 justify-center"><button class="btn-ghost" onclick="this.closest('.modal-overlay').remove(); go('prestasi')">Prestasi</button><button class="btn-neon gold" onclick="this.closest('.modal-overlay').remove(); go('dashboard')">Dashboard</button></div></div>`;
+  document.getElementById('modal-root').appendChild(modal);
+  confetti(200);
+};
+
+// ===== MATERI =====
+const MATERI = {
+  dec: { color: 'var(--cyan)', title: 'DEKOMPOSISI', icon: 'puzzle-piece', content: `<p class="mb-3 text-sm">Memecah masalah besar menjadi beberapa masalah kecil agar lebih mudah diselesaikan.</p><div class="grid md:grid-cols-3 gap-3 mb-4"><div class="glass p-3 text-center"><i class="fa-solid fa-bullseye text-2xl mb-1" style="color:var(--pink)"></i><div class="font-bold text-sm">Masalah Besar</div><div class="text-xs" style="color:var(--muted)">"Membersihkan kelas"</div></div><div class="flex items-center justify-center text-2xl" style="color:var(--cyan)"><i class="fa-solid fa-arrow-right"></i></div><div class="glass p-3 text-center"><i class="fa-solid fa-list-check text-2xl mb-1" style="color:var(--lime)"></i><div class="font-bold text-sm">Bagian Kecil</div><div class="text-xs" style="color:var(--muted)">6 sub-tugas</div></div></div><div class="font-bold mb-2 text-sm">Contoh:</div><div class="grid grid-cols-2 md:grid-cols-3 gap-2">${['Menyapu','Mengepel','Bersihkan meja','Bersihkan papan','Atur kursi','Buang sampah'].map(t => `<div class="p-2 rounded-lg text-xs" style="background:var(--surface-2);border:1px solid var(--border)"><i class="fa-solid fa-check mr-1" style="color:var(--lime)"></i>${t}</div>`).join('')}</div>` },
+  pat: { color: 'var(--pink)', title: 'PENGENALAN POLA', icon: 'magnifying-glass', content: `<p class="mb-3 text-sm">Mencari kesamaan atau pola yang muncul pada beberapa masalah untuk memprediksi solusi.</p><div class="grid md:grid-cols-2 gap-3">${[{t:'Warna',s:'🔵🔴🔵🔴🔵🔴',d:'Biru-merah bergantian'},{t:'Angka',s:'2,4,6,8,10',d:'Bertambah 2'},{t:'Bentuk',s:'🔺🔻🔺🔻🔺',d:'Naik-turun'},{t:'Waktu',s:'🌙☀️🌙☀️🌙',d:'Malam-siang'}].map(p => `<div class="glass p-3"><div class="font-bold mb-1 text-sm" style="color:var(--pink)">Pola ${p.t}</div><div class="text-xl mb-1">${p.s}</div><div class="text-xs" style="color:var(--muted)">${p.d}</div></div>`).join('')}</div>` },
+  abs: { color: 'var(--lime)', title: 'ABSTRAKSI', icon: 'bullseye', content: `<p class="mb-3 text-sm">Memusatkan perhatian pada informasi penting dan mengabaikan yang tidak diperlukan.</p><div class="grid md:grid-cols-2 gap-3"><div class="glass p-3" style="border-color:var(--lime)"><div class="font-bold mb-2 text-sm" style="color:var(--lime)">✓ PENTING</div><ul class="text-xs space-y-1"><li><i class="fa-solid fa-check mr-1" style="color:var(--lime)"></i>Tujuan perjalanan</li><li><i class="fa-solid fa-check mr-1" style="color:var(--lime)"></i>Jarak dan rute</li><li><i class="fa-solid fa-check mr-1" style="color:var(--lime)"></i>Waktu tempuh</li><li><i class="fa-solid fa-check mr-1" style="color:var(--lime)"></i>Transportasi</li></ul></div><div class="glass p-3" style="border-color:var(--pink)"><div class="font-bold mb-2 text-sm" style="color:var(--pink)">✗ TIDAK PENTING</div><ul class="text-xs space-y-1"><li><i class="fa-solid fa-xmark mr-1" style="color:var(--pink)"></i>Warna tas teman</li><li><i class="fa-solid fa-xmark mr-1" style="color:var(--pink)"></i>Jumlah pohon</li><li><i class="fa-solid fa-xmark mr-1" style="color:var(--pink)"></i>Nama penjaga</li><li><i class="fa-solid fa-xmark mr-1" style="color:var(--pink)"></i>Warna sepatu</li></ul></div></div>` },
+  alg: { color: 'var(--gold)', title: 'ALGORITMA', icon: 'gears', content: `<p class="mb-3 text-sm">Langkah-langkah terurut dan sistematis untuk menyelesaikan masalah.</p><div class="font-bold mb-2 text-sm">Contoh: Membuat teh</div><div class="space-y-1">${['Siapkan gelas dan teh','Didihkan air','Tuang air ke gelas','Masukkan teh','Tambahkan gula','Aduk rata','Teh siap'].map((s,i) => `<div class="flex items-center gap-2"><div class="step-number">${i+1}</div><div class="flex-1 p-2 rounded-lg text-xs" style="background:var(--surface-2);border:1px solid var(--border)">${s}</div></div>${i < 6 ? '<div class="flow-arrow"><i class="fa-solid fa-arrow-down"></i></div>' : ''}`).join('')}</div>` }
+};
+window.switchMateriTab = function(tab) {
+  document.querySelectorAll('.tab-btn[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  const m = MATERI[tab];
+  document.getElementById('materiContent').innerHTML = `<div class="flex items-center gap-3 mb-4"><div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background:var(--surface-2);border:1px solid ${m.color}"><i class="fa-solid fa-${m.icon} text-xl" style="color:${m.color}"></i></div><div><div class="text-xs uppercase font-bold" style="color:${m.color}">Pilar Berpikir Komputasional</div><h3 class="font-display text-xl font-black">${m.title}</h3></div></div>${m.content}`;
+};
+
+// ===== PRESTASI =====
+function updatePrestasi() {
+  document.getElementById('badgeGrid').innerHTML = BADGES.map(b => {
+    const earned = STATE.player.badges.includes(b.id);
+    return `<div class="achievement ${earned ? 'earned' : 'locked'}"><div class="achievement-icon">${b.icon}</div><div class="font-bold text-xs">${b.name}</div><div class="text-xs" style="color:var(--muted)">${b.desc}</div>${earned ? '<div class="text-xs mt-1" style="color:var(--gold)"><i class="fa-solid fa-check-circle"></i></div>' : '<div class="text-xs mt-1" style="color:var(--muted)"><i class="fa-solid fa-lock"></i></div>'}</div>`;
+  }).join('');
+  document.getElementById('achXP').textContent = STATE.player.xp;
+  document.getElementById('achWorld').textContent = STATE.player.completedWorlds.length;
+  document.getElementById('achBadge').textContent = STATE.player.badges.length;
+  document.getElementById('levelList').innerHTML = LEVELS.map(l => {
+    const unlocked = STATE.player.xp >= l.minXP;
+    const current = STATE.player.level === l.level;
+    return `<div class="flex items-center gap-3 p-2.5 rounded-lg" style="background:${current ? 'rgba(0,229,255,0.1)' : 'var(--surface-2)'};border:1px solid ${current ? 'var(--cyan)' : 'var(--border)'}"><div class="w-9 h-9 rounded-full flex items-center justify-center font-display font-black text-sm" style="background:${unlocked ? 'linear-gradient(135deg,var(--cyan),var(--purple))' : 'var(--surface)'};color:${unlocked ? 'white' : 'var(--muted)'}">${l.level}</div><div class="flex-1"><div class="font-bold text-sm ${current ? 'glow-cyan' : ''}" style="color:${unlocked ? 'var(--text)' : 'var(--muted)'}">${l.name}</div><div class="text-xs" style="color:var(--muted)">${l.minXP} XP${current ? ' (NOW)' : ''}</div></div>${unlocked ? '<i class="fa-solid fa-check" style="color:var(--lime)"></i>' : '<i class="fa-solid fa-lock" style="color:var(--muted)"></i>'}</div>`;
+  }).join('');
+}
+
+// ===== RUBRIC =====
+window.calcRubric = function() {
+  const dec = Math.max(1, Math.min(4, parseInt(document.getElementById('rDec').value) || 1));
+  const pat = Math.max(1, Math.min(4, parseInt(document.getElementById('rPat').value) || 1));
+  const abs = Math.max(1, Math.min(4, parseInt(document.getElementById('rAbs').value) || 1));
+  const alg = Math.max(1, Math.min(4, parseInt(document.getElementById('rAlg').value) || 1));
+  const total = dec + pat + abs + alg;
+  const final = Math.round(total / 16 * 100);
+  document.getElementById('rTotal').textContent = total;
+  document.getElementById('rFinal').textContent = final;
+  let pred = 'PERLU BIMBINGAN';
+  if (final >= 90) pred = 'SANGAT BAIK';
+  else if (final >= 80) pred = 'BAIK';
+  else if (final >= 70) pred = 'CUKUP';
+  document.getElementById('rPred').textContent = pred;
+};
+
+window.saveLKPD = function() { saveState(); syncStudent(); toast('LKPD disimpan!', 'success'); };
+
+// ===== ADMIN =====
+window.adminLogin = function() {
+  const u = document.getElementById('adminUser').value;
+  const p = document.getElementById('adminPass').value;
+  if (u === STATE.admin.user && p === STATE.admin.pass) {
+    STATE.admin.loggedIn = true;
+    document.getElementById('adminLoginPage').classList.add('hidden');
+    document.getElementById('adminDashboard').classList.remove('hidden');
+    renderStudents();
+    toast('Login berhasil!', 'success');
+    playSound('success');
+    saveState();
+  } else {
+    toast('Username/password salah!', 'error');
+    playSound('error');
+  }
+};
+window.adminLogout = function() {
+  STATE.admin.loggedIn = false;
+  document.getElementById('adminLoginPage').classList.remove('hidden');
+  document.getElementById('adminDashboard').classList.add('hidden');
+  document.getElementById('adminPass').value = '';
+  saveState();
+  toast('Logout berhasil', 'info');
+};
+window.renderStudents = function() {
+  const tbody = document.getElementById('studentTable');
+  const search = document.getElementById('searchStudent').value.toLowerCase();
+  const filterClass = document.getElementById('filterClass').value;
+  let filtered = STATE.students.filter(s => {
+    if (search && !s.name.toLowerCase().includes(search)) return false;
+    if (filterClass && s.class !== filterClass) return false;
+    return true;
+  });
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6" style="color:var(--muted)"><i class="fa-solid fa-database text-3xl mb-2 block"></i><span class="text-xs">Belum ada data. Siswa main game → data otomatis masuk!</span></td></tr>`;
+  } else {
+    tbody.innerHTML = filtered.map((s, i) => {
+      const pred = s.nilaiAkhir >= 90 ? 'Sangat Baik' : s.nilaiAkhir >= 80 ? 'Baik' : s.nilaiAkhir >= 70 ? 'Cukup' : 'Bimbingan';
+      const predColor = s.nilaiAkhir >= 90 ? 'var(--lime)' : s.nilaiAkhir >= 80 ? 'var(--cyan)' : s.nilaiAkhir >= 70 ? 'var(--gold)' : 'var(--pink)';
+      return `<tr><td>${i+1}</td><td><strong>${s.name}</strong></td><td>${s.class}</td><td>${s.group || '-'}</td><td style="color:var(--cyan);font-weight:700">${s.xp}</td><td style="color:var(--gold);font-weight:700">${s.lkpd}</td><td style="color:${predColor};font-weight:700">${s.nilaiAkhir}</td><td><span style="color:${predColor};font-weight:700">${pred}</span></td><td>${s.isMaster ? '👑' : ''} ${s.badge}/5</td><td><button onclick="deleteStudent('${s.name}','${s.class}')" class="text-xs px-2 py-1 rounded" style="background:rgba(255,45,117,0.15);color:var(--pink);border:1px solid var(--pink)"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+    }).join('');
+  }
+  document.getElementById('tTotal').textContent = STATE.students.length;
+  document.getElementById('tAvgXP').textContent = STATE.students.length ? Math.round(STATE.students.reduce((a,s) => a + s.xp, 0) / STATE.students.length) : 0;
+  document.getElementById('tAvgNilai').textContent = STATE.students.length ? Math.round(STATE.students.reduce((a,s) => a + s.nilaiAkhir, 0) / STATE.students.length) : 0;
+  document.getElementById('tMaster').textContent = STATE.students.filter(s => s.isMaster).length;
+};
+window.deleteStudent = function(name, cls) {
+  if (!confirm(`Hapus ${name}?`)) return;
+  STATE.students = STATE.students.filter(s => !(s.name === name && s.class === cls));
+  saveState(); renderStudents(); toast('Data dihapus', 'info');
+};
+window.addStudentModal = function() {
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `<div class="modal-content"><h3 class="font-display font-black text-lg mb-4">Tambah Siswa</h3><div class="space-y-3"><input type="text" class="input-field" id="newName" placeholder="Nama" /><select class="input-field" id="newClass"><option value="">Kelas</option><option>VII A</option><option>VII B</option><option>VII C</option><option>VII D</option><option>VII E</option><option>VII F</option></select><input type="text" class="input-field" id="newGroup" placeholder="Kelompok" /><input type="number" class="input-field" id="newXP" placeholder="XP" value="0" /><input type="number" class="input-field" id="newNilai" placeholder="Nilai LKPD" value="0" /><div class="flex gap-2 justify-end pt-2"><button class="btn-ghost" onclick="this.closest('.modal-overlay').remove()">Batal</button><button class="btn-neon" onclick="saveNewStudent()">Simpan</button></div></div></div>`;
+  document.getElementById('modal-root').appendChild(modal);
+};
+window.saveNewStudent = function() {
+  const name = document.getElementById('newName').value.trim();
+  const cls = document.getElementById('newClass').value;
+  if (!name || !cls) { toast('Nama & kelas wajib!', 'warning'); return; }
+  const xp = parseInt(document.getElementById('newXP').value) || 0;
+  const lkpd = parseInt(document.getElementById('newNilai').value) || 0;
+  STATE.students.push({ name, class: cls, group: document.getElementById('newGroup').value, xp, score: xp, lkpd, nilaiAkhir: Math.round(xp/1000*50 + lkpd/2), badge: 0, isMaster: false, completedWorlds: 0, level: 1, timestamp: Date.now() });
+  saveState(); renderStudents();
+  document.querySelector('.modal-overlay').remove();
+  toast('Siswa ditambahkan!', 'success');
+};
+window.exportCSV = function() {
+  if (STATE.students.length === 0) { toast('Belum ada data', 'warning'); return; }
+  const headers = ['No','Nama','Kelas','Kelompok','XP','LKPD','Akhir','Predikat','Badge'];
+  const rows = STATE.students.map((s, i) => [i+1, s.name, s.class, s.group, s.xp, s.lkpd, s.nilaiAkhir, s.nilaiAkhir >= 90 ? 'Sangat Baik' : s.nilaiAkhir >= 80 ? 'Baik' : s.nilaiAkhir >= 70 ? 'Cukup' : 'Bimbingan', s.badge]);
+  const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'data_siswa.csv'; a.click();
+  URL.revokeObjectURL(url);
+  toast('CSV exported!', 'success');
+};
+window.printTeacher = function() { window.print(); };
+window.resetData = function() {
+  if (!confirm('Reset SEMUA data siswa?')) return;
+  STATE.students = []; saveState(); renderStudents(); toast('Data direset', 'info');
+};
+
+// ===== CONFETTI =====
+function confetti(count = 100) {
+  const canvas = document.getElementById('confetti');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const colors = ['#00e5ff', '#ff2d75', '#39ff14', '#ffd700', '#b14dff', '#ff6b35'];
+  const particles = [];
+  for (let i = 0; i < count; i++) particles.push({ x: Math.random() * canvas.width, y: -20, vx: (Math.random() - 0.5) * 6, vy: Math.random() * 3 + 2, size: Math.random() * 8 + 4, color: colors[Math.floor(Math.random() * colors.length)], rotation: Math.random() * 360, vr: (Math.random() - 0.5) * 10 });
+  let frame = 0;
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += 0.1; p.rotation += p.vr; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rotation * Math.PI / 180); ctx.fillStyle = p.color; ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size * 0.6); ctx.restore(); });
+    frame++;
+    if (frame < 200) requestAnimationFrame(animate);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  animate();
+}
+
+// ===== PARTICLES BG =====
+function initParticles() {
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+  function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+  for (let i = 0; i < 60; i++) {
+    particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3, size: Math.random() * 2 + 0.5, color: ['#00e5ff', '#ff2d75', '#39ff14', '#b14dff'][Math.floor(Math.random() * 4)], alpha: Math.random() * 0.5 + 0.2 });
+  }
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x = canvas.width; if (p.x > canvas.width) p.x = 0;
+      if (p.y < 0) p.y = canvas.height; if (p.y > canvas.height) p.y = 0;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = p.color; ctx.globalAlpha = p.alpha; ctx.fill();
+      ctx.shadowBlur = 8; ctx.shadowColor = p.color;
+    });
+    requestAnimationFrame(animate);
+  }
+  animate();
+}
+
+// ===== THREE.JS =====
+function initThree() {
+  try {
+    const container = document.getElementById('three-bg');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    container.appendChild(renderer.domElement);
+    const shapes = [];
+    const geoms = [new THREE.BoxGeometry(1,1,1), new THREE.OctahedronGeometry(0.7), new THREE.IcosahedronGeometry(0.7), new THREE.TetrahedronGeometry(0.8), new THREE.TorusGeometry(0.5,0.2,8,16)];
+    const colors = [0x00e5ff, 0xff2d75, 0x39ff14, 0xb14dff, 0xffd700];
+    for (let i = 0; i < 20; i++) {
+      const geom = geoms[Math.floor(Math.random() * geoms.length)];
+      const mat = new THREE.MeshBasicMaterial({ color: colors[i % colors.length], wireframe: true, transparent: true, opacity: 0.35 });
+      const mesh = new THREE.Mesh(geom, mat);
+      mesh.position.set((Math.random() - 0.5) * 30, (Math.random() - 0.5) * 20, (Math.random() - 0.5) * 20 - 5);
+      mesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+      mesh.userData = { rx: (Math.random()-0.5)*0.01, ry: (Math.random()-0.5)*0.01, rz: (Math.random()-0.5)*0.01, floatRange: Math.random()*2+1, originalY: mesh.position.y, phase: Math.random()*Math.PI*2 };
+      scene.add(mesh);
+      shapes.push(mesh);
+    }
+    camera.position.z = 12;
+    let mouseX = 0, mouseY = 0;
+    window.addEventListener('mousemove', e => { mouseX = (e.clientX / window.innerWidth - 0.5) * 2; mouseY = (e.clientY / window.innerHeight - 0.5) * 2; });
+    window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+    let t = 0;
+    function animate() {
+      requestAnimationFrame(animate);
+      t += 0.01;
+      shapes.forEach(s => { s.rotation.x += s.userData.rx; s.rotation.y += s.userData.ry; s.rotation.z += s.userData.rz; s.position.y = s.userData.originalY + Math.sin(t + s.userData.phase) * s.userData.floatRange; });
+      camera.position.x += (mouseX * 2 - camera.position.x) * 0.05;
+      camera.position.y += (-mouseY * 2 - camera.position.y) * 0.05;
+      camera.lookAt(0, 0, 0);
+      renderer.render(scene, camera);
+    }
+    animate();
+  } catch(e) {}
+}
+
+// ===== INIT =====
+loadState();
+document.documentElement.classList.toggle('light', !STATE.settings.dark);
+document.documentElement.classList.toggle('dark', STATE.settings.dark);
+document.getElementById('darkIcon').className = STATE.settings.dark ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+document.getElementById('soundIcon').className = STATE.settings.sound ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
+if (STATE.settings.music) document.getElementById('musicBtn').classList.add('active');
+updatePlayerUI();
+switchMateriTab('dec');
+initParticles();
+initThree();
+
+const today = new Date().toISOString().split('T')[0];
+const dateEl = document.getElementById('lkpdDate');
+if (dateEl) dateEl.value = today;
+
+setTimeout(() => toast('Selamat datang! Klik MULAI untuk bermain.', 'info', 4000), 600);
+
+// First user interaction to enable audio (browser policy)
+document.addEventListener('click', function initAudio() {
+  getAudioCtx();
+  if (STATE.settings.music) Music.start();
+  document.removeEventListener('click', initAudio);
+}, { once: true });
+</script>
+</body>
+</html>
